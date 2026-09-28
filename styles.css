@@ -75,6 +75,38 @@ header > nav > a > img { width: 70px; height: 7%; object-fit: cover; }
 
 .nav-links a:hover { color: var(--medium-2); }
 
+/* Botão hambúrguer (só aparece no mobile/tablet) */
+.nav-toggle {
+  display: none;
+  position: relative;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.nav-toggle span {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  height: 2px;
+  background: var(--medium-main);
+  border-radius: 2px;
+  transition: transform .25s, top .25s, opacity .2s;
+}
+
+.nav-toggle span:nth-child(1) { top: 14px; }
+.nav-toggle span:nth-child(2) { top: 21px; }
+.nav-toggle span:nth-child(3) { top: 28px; }
+
+.nav-toggle.open span:nth-child(1) { top: 21px; transform: rotate(45deg); }
+.nav-toggle.open span:nth-child(2) { opacity: 0; }
+.nav-toggle.open span:nth-child(3) { top: 21px; transform: rotate(-45deg); }
+
+.nav-toggle:focus-visible { outline: 2px solid var(--medium-2); outline-offset: 2px; }
+
 .site-header .button { background: var(--medium-2); color: var(--cream); }
 .site-header .button:hover { background: var(--dark-2); }
 
@@ -433,22 +465,37 @@ html { scroll-padding-top: 100px; }
 /* Tablet e abaixo */
 @media (max-width: 900px) {
 
-  /* Sem menu hambúrguer: os links viram uma faixa rolável sob o logo */
-  .navbar { flex-wrap: wrap; min-height: 0; padding: 10px 0 0; gap: 10px 16px; }
-  .logo { order: 1; }
+  /* Menu hambúrguer: painel que desce sob o header */
+  html { scroll-padding-top: 80px; }
+
+  .navbar { min-height: 68px; gap: 12px; }
+  .logo { margin-right: auto; }
   .site-header .button { order: 2; }
+  .nav-toggle { display: block; order: 3; margin-right: -8px; }
+
   .nav-links {
-    order: 3;
-    width: 100%;
-    gap: 22px;
-    padding: 12px 0;
-    overflow-x: auto;
-    white-space: nowrap;
-    border-top: 1px solid var(--line);
-    scrollbar-width: none;
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 0;
+    padding: 6px 5% 12px;
+    background: var(--cream);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 14px 24px rgba(16, 60, 101, .18);
+    font-size: 1rem;
   }
-  .nav-links::-webkit-scrollbar { display: none; }
-  .nav-links a { padding: 4px 0; }
+
+  .nav-links.open { display: flex; }
+
+  .nav-links a {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .nav-links a:last-child { border-bottom: 0; }
 
   .hero { min-height: 0; }
 
@@ -481,8 +528,6 @@ html { scroll-padding-top: 100px; }
 
 /* Celular */
 @media (max-width: 600px) {
-
-  html { scroll-padding-top: 110px; }
 
   .section { padding: 70px 0; }
   .section-heading { margin-bottom: 40px; }
@@ -572,4 +617,11 @@ html { scroll-padding-top: 100px; }
   .site-footer { padding: 40px 0; }
   .footer-inner { flex-direction: column; align-items: flex-start; }
   .footer-links { flex-wrap: wrap; gap: 14px 22px; }
+}
+
+
+/* Telas muito estreitas */
+@media (max-width: 380px) {
+  .site-header .button-small { padding: 10px 12px; font-size: .68rem; letter-spacing: .04em; }
+  .logo img, header > nav > a > img { width: 56px; }
 }

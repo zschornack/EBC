@@ -15,7 +15,7 @@
         <img src="img/fav.png" alt="Book Club">
       </a>
 
-      <div class="nav-links">
+      <div class="nav-links" id="nav-links">
         <a href="#about">About Us</a>
         <a href="#teachers">Teachers</a>
         <a href="#books">The Bookshelf</a>
@@ -24,6 +24,10 @@
       </div>
 
       <a href="#waitlist" class="button button-small">2027 Waitlist</a>
+
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+        <span></span><span></span><span></span>
+      </button>
     </nav>
   </header>
 
@@ -513,6 +517,37 @@
       </div>
     </div>
   </footer>
+
+
+  <script>
+    (function () {
+      var toggle = document.querySelector('.nav-toggle');
+      var links = document.getElementById('nav-links');
+
+      function setOpen(open) {
+        links.classList.toggle('open', open);
+        toggle.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', open);
+        toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      }
+
+      toggle.addEventListener('click', function () {
+        setOpen(!links.classList.contains('open'));
+      });
+
+      links.addEventListener('click', function (e) {
+        if (e.target.tagName === 'A') setOpen(false);
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') setOpen(false);
+      });
+
+      window.addEventListener('resize', function () {
+        if (window.innerWidth > 900) setOpen(false);
+      });
+    })();
+  </script>
 
 </body>
 </html>
