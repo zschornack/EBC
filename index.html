@@ -56,11 +56,6 @@
         </div>
 
         <div class="hero-visual">
-          <div class="book-stack">
-            <div class="book book-one">BOOK<br>CLUB</div>
-            <div class="book book-two">READ<br>& TALK</div>
-            <div class="book book-three">LITTLE<br>READS</div>
-          </div>
         </div>
 
       </div>
@@ -138,9 +133,10 @@
         <div class="program-grid">
 
           <article class="program-card little-reads">
-            <p class="program-number">01</p>
             <p class="eyebrow">PARA CRIANÇAS DE 8 A 12 ANOS</p>
-            <h3>Little Reads</h3>
+            <div class="logo-container">
+              <img src="img/little reads.png" alt="Little Reads" class="program-logo";> 
+            </div>
             <p>
               Inglês além do idioma, que ajuda a moldar quem o seu filho está se
               tornando.
@@ -157,10 +153,11 @@
           </article>
 
           <article class="program-card featured book-talk">
-            <p class="program-number">02</p>
             <p class="eyebrow">PARA ADOLESCENTES DE 13 A 17 ANOS</p>
-            <h3>Book & Talk</h3>
-            <p>
+            <div class="logo-container">
+              <img src="img/book and talk.png" alt="Book & Talk" class="program-logo";>
+            </div>
+              <p>
               Para quem não quer apenas entender inglês — quer se expressar,
               argumentar e se posicionar.
             </p>
@@ -234,44 +231,25 @@
           </p>
         </div>
 
+        <p class="shelf-hint">Clique em um livro para abri-lo</p>
+
         <div class="bookshelf">
-
-          <article class="book-card little-reads">
-            <div class="book-cover cover-one">
-              <span>LIVRO<br>01</span>
-            </div>
-            <p class="eyebrow">LITTLE READS</p>
-            <h3>Título do Livro Um</h3>
-            <p>Breve descrição da obra e do que os alunos exploram.</p>
-          </article>
-
-          <article class="book-card book-talk">
-            <div class="book-cover cover-two">
-              <span>LIVRO<br>02</span>
-            </div>
-            <p class="eyebrow">BOOK & TALK</p>
-            <h3>Título do Livro Dois</h3>
-            <p>Breve descrição da obra e do que os alunos exploram.</p>
-          </article>
-
-          <article class="book-card book-talk">
-            <div class="book-cover cover-three">
-              <span>LIVRO<br>03</span>
-            </div>
-            <p class="eyebrow">BOOK & TALK</p>
-            <h3>Título do Livro Três</h3>
-            <p>Breve descrição da obra e do que os alunos exploram.</p>
-          </article>
-
-          <article class="book-card upcoming">
-            <div class="book-cover reveal">
-              <span>2027<br>?</span>
-            </div>
-            <p class="eyebrow">EM BREVE</p>
-            <h3>A ser revelado</h3>
-            <p>O próximo capítulo está chegando.</p>
-          </article>
-
+          <button class="spine cover-one" type="button" data-kind="little-reads" data-tag="LITTLE READS" data-num="LIVRO 01"
+                  data-title="Título do Livro Um" data-desc="Breve descrição da obra e do que os alunos exploram." data-cover="" aria-label="Abrir Título do Livro Um">
+            <span class="spine-title">Título do Livro Um</span>
+          </button>
+          <button class="spine cover-two" type="button" data-kind="book-talk" data-tag="BOOK & TALK" data-num="LIVRO 02"
+                  data-title="Título do Livro Dois" data-desc="Breve descrição da obra e do que os alunos exploram." data-cover="" aria-label="Abrir Título do Livro Dois">
+            <span class="spine-title">Título do Livro Dois</span>
+          </button>
+          <button class="spine cover-three" type="button" data-kind="book-talk" data-tag="BOOK & TALK" data-num="LIVRO 03"
+                  data-title="Título do Livro Três" data-desc="Breve descrição da obra e do que os alunos exploram." data-cover="" aria-label="Abrir Título do Livro Três">
+            <span class="spine-title">Título do Livro Três</span>
+          </button>
+          <button class="spine reveal" type="button" data-kind="upcoming" data-tag="EM BREVE" data-num="2027 ?"
+                  data-title="A ser revelado" data-desc="O próximo capítulo está chegando." data-cover="" aria-label="Abrir A ser revelado">
+            <span class="spine-title">A ser revelado</span>
+          </button>
         </div>
 
       </div>
@@ -524,6 +502,22 @@
     </div>
   </footer>
 
+  <!-- LIVRO ABERTO (aparece ao clicar em um livro da estante) -->
+  <div class="book-modal" id="book-modal" hidden>
+    <div class="book-modal-backdrop" id="bm-backdrop"></div>
+    <div class="book-modal-inner" role="dialog" aria-modal="true" aria-labelledby="bm-title">
+      <div class="book-stage">
+        <div class="book-3d" id="bm-book"><span id="bm-num"></span></div>
+      </div>
+      <div class="book-info" id="bm-info">
+        <p class="eyebrow" id="bm-tag"></p>
+        <h3 id="bm-title"></h3>
+        <p id="bm-desc"></p>
+        <button type="button" class="text-link" id="bm-close">Fechar ×</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       var toggle = document.querySelector('.nav-toggle');
@@ -551,6 +545,90 @@
       window.addEventListener('resize', function () {
         if (window.innerWidth > 900) setOpen(false);
       });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      var modal = document.getElementById('book-modal');
+      var book = document.getElementById('bm-book');
+      var info = document.getElementById('bm-info');
+      var closeBtn = document.getElementById('bm-close');
+      var current = null, busy = false;
+      var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var T = function (ms) { return calm ? 1 : ms; };
+      var REST = 'translate(0px, 0px) scale(1, 1) rotateY(0deg)';
+
+      // posição/tamanho do livro na estante, expressos como transform do livro grande
+      function fromSpine(spine, angle) {
+        var r = spine.getBoundingClientRect(), b = book.getBoundingClientRect();
+        var dx = r.left + r.width / 2 - (b.left + b.width / 2);
+        var dy = r.top + r.height / 2 - (b.top + b.height / 2);
+        return 'translate(' + dx + 'px, ' + dy + 'px) scale(' + (r.width / b.width) + ', ' + (r.height / b.height) + ') rotateY(' + angle + 'deg)';
+      }
+
+      function open(spine) {
+        if (busy) return;
+        busy = true; current = spine;
+        var d = spine.dataset;
+        document.getElementById('bm-tag').textContent = d.tag;
+        document.getElementById('bm-title').textContent = d.title;
+        document.getElementById('bm-desc').textContent = d.desc;
+        document.getElementById('bm-num').textContent = d.num;
+        modal.dataset.kind = d.kind;
+        book.className = 'book-3d ' + spine.className.replace('spine', '').replace('pulled', '').trim();
+        book.style.backgroundImage = d.cover ? 'url("' + d.cover + '")' : '';
+        book.classList.toggle('has-image', !!d.cover);
+
+        modal.hidden = false;
+        document.documentElement.classList.add('modal-open');
+        modal.getBoundingClientRect();           // força o layout antes de medir
+        modal.classList.add('show');
+
+        var start = fromSpine(spine, -90);
+        var mid = fromSpine(spine, -50).replace(/scale\([^)]*\)/, 'scale(0.6, 0.85)');
+        spine.classList.add('pulled');
+
+        var a = book.animate([
+          { transform: start },
+          { transform: mid, offset: .35 },
+          { transform: REST }
+        ], { duration: T(850), easing: 'cubic-bezier(.22,.8,.3,1)' });
+        info.animate([
+          { opacity: 0, transform: 'translateX(-24px)' },
+          { opacity: 1, transform: 'none' }
+        ], { duration: T(500), delay: T(500), fill: 'backwards', easing: 'ease-out' });
+
+        a.finished.then(function () { busy = false; closeBtn.focus(); });
+      }
+
+      function close() {
+        if (busy || !current) return;
+        busy = true;
+        var spine = current;
+        modal.classList.remove('show');
+        info.animate([{ opacity: 1 }, { opacity: 0 }], { duration: T(200), fill: 'forwards' });
+        var a = book.animate([
+          { transform: REST },
+          { transform: fromSpine(spine, -90) }
+        ], { duration: T(650), easing: 'cubic-bezier(.6,0,.75,.3)', fill: 'forwards' });
+
+        a.finished.then(function () {
+          modal.hidden = true;
+          book.getAnimations().concat(info.getAnimations()).forEach(function (x) { x.cancel(); });
+          spine.classList.remove('pulled');
+          document.documentElement.classList.remove('modal-open');
+          spine.focus();
+          current = null; busy = false;
+        });
+      }
+
+      document.querySelectorAll('.spine').forEach(function (s) {
+        s.addEventListener('click', function () { open(s); });
+      });
+      closeBtn.addEventListener('click', close);
+      document.getElementById('bm-backdrop').addEventListener('click', close);
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
     })();
   </script>
 
