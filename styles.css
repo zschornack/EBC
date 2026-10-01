@@ -19,6 +19,7 @@
 
   --line-on-dark: rgba(245, 241, 232, .22);
   --max-width: 1180px;
+  --glass-color-overlay: linear-gradient(to bottom, rgba(0, 0, 0, .2), rgba(16, 60, 101, .2));
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -52,7 +53,7 @@ header > nav > a > img { width: 70px; height: 7%; object-fit: cover; }
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--light-main);
+  background: #bed5ff;
 }
 
 .navbar {
@@ -132,7 +133,11 @@ h3 { font-size: 1.7rem; }
 .section-light { --line: rgba(16, 60, 101, .28); background: var(--light-main); color: var(--medium-main); }
 .section-light .eyebrow { color: var(--medium-main); }
 
-.section-dark { background: var(--dark-main); color: var(--cream); }
+.section-dark { 
+  background-image: linear-gradient(to top, var(--medium-main), #000000); 
+  color: var(--cream); 
+  border-top: 40px solid white;
+}
 
 .section-heading { margin-bottom: 60px; }
 .section-heading.centered { text-align: center; }
@@ -254,25 +259,43 @@ h3 { font-size: 1.7rem; }
 
 /* ABOUT */
 
-#about {
+#about,
+.program-process-background {
   position: relative;
-  background-color: var(--dark-main);
-}
+  isolation: isolate;
+  background-image: linear-gradient(to bottom, #000000, #000000, #000000, var(--medium-main), #000000)}
 
-#about::before {
+#about::before,
+.program-process-background::before {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: url("img/background_classic.png");
-  background-size: cover;
-  background-position: center;
-  opacity: 0.65;
+  background-image: url("img/background_glass.png");
+  background-size: 100vw auto;
+  background-position: center top;
+  background-repeat: repeat-y;
+  opacity: 0.5;
   z-index: 0;
 }
 
-#about > * {
+#about::after,
+.program-process-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--glass-color-overlay);
+  z-index: 0;
+  pointer-events: none;
+}
+
+#about > *,
+.program-process-background > * {
   position: relative;
   z-index: 1;
+}
+
+.program-process-background > section {
+  background: transparent;
 }
 
 .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 100px; }
@@ -282,8 +305,6 @@ h3 { font-size: 1.7rem; }
 .stats { display: flex; gap: 50px; margin-top: 55px; border-top: 1px solid var(--line-on-dark); padding-top: 30px; }
 .stats div { display: flex; align-items: center; gap: 12px; }
 .stats strong { font-size: 2.5rem; font-weight: 400; color: var(--light-main); }
-.stats span { font-family: Arial, sans-serif; font-size: .7rem; text-transform: uppercase; color: var(--light-main); }
-
 
 /* PROGRAMS — Little Reads = fundo amarelo-claro (1) · Book & Talk = fundo rosa-claro (2) */
 
@@ -366,7 +387,25 @@ h3 { font-size: 1.7rem; }
 
 /* BOOKSHELF — cores 1 e 2 só nas capas/etiquetas de cada modalidade */
 
-.bookshelf-section { background: var(--cream); color: var(--medium-main); }
+.bookshelf-section {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--cream);
+  color: var(--medium-main);
+}
+
+.bookshelf-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: url("img/paper background.avif");
+  background-size: cover;
+  background-position: center;
+  opacity: .2;
+  pointer-events: none;
+}
 .bookshelf-section .eyebrow { color: var(--medium-main); }
 .bookshelf-section h2 { color: var(--medium-main); }
 
@@ -381,15 +420,15 @@ h3 { font-size: 1.7rem; }
   justify-content: center;
   justify-content: safe center;
   align-items: flex-end;
-  gap: 6px;
+  gap: 0px;
   padding: 40px 20px 0;
   overflow-x: auto;
   border-bottom: 18px solid var(--medium-main);
 }
 
-.cover-one { --cover-bg: var(--medium-1); --cover-fg: var(--dark-1); }
-.cover-two { --cover-bg: var(--medium-2); --cover-fg: var(--cream); }
-.cover-three { --cover-bg: var(--dark-2); --cover-fg: var(--light-2); }
+.cover-one { --cover-bg: #185a35; --cover-fg: #e2c45b; }
+.cover-two { --cover-bg: #9bc3d7; --cover-fg: #df4c20; }
+.cover-three { --cover-bg: #16863c; --cover-fg: #fff5dc; }
 .reveal { --cover-bg: var(--light-main); --cover-fg: var(--medium-main); }
 
 .spine {
@@ -478,8 +517,9 @@ html.modal-open { overflow: hidden; }
 .book-info h3 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 20px; color: var(--cream); }
 .book-info p:not(.eyebrow) { font-size: 1.1rem; margin-bottom: 30px; color: var(--cream); }
 
-.book-modal[data-kind="little-reads"] .book-info .eyebrow { color: var(--medium-1); }
-.book-modal[data-kind="book-talk"] .book-info .eyebrow { color: var(--light-2); }
+.book-modal[data-book="cover-one"] .book-info .eyebrow { color: #e2c45b; }
+.book-modal[data-book="cover-two"] .book-info .eyebrow { color: #df4c20; }
+.book-modal[data-book="cover-three"] .book-info .eyebrow { color: #fff5dc; }
 .book-modal[data-kind="upcoming"] .book-info .eyebrow { color: var(--light-main); }
 
 .book-info .text-link { background: none; border: 0; cursor: pointer; }
@@ -826,6 +866,12 @@ select { border-radius: 999px; }
   pointer-events: none;
 }
 
+.process-grid span {
+  left: 22%;
+  right: auto;
+  white-space: nowrap;
+}
+
 .process-grid h3,
 .included-item h3 {
   position: relative;
@@ -926,7 +972,7 @@ select { border-radius: 999px; }
 .stats span {
   position: relative;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: .68rem;
+  font-size: 1rem;
   line-height: 1.45;
   letter-spacing: .08em;
   text-transform: uppercase;
