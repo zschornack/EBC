@@ -218,6 +218,19 @@
     status.className = 'form-status ' + (type || '');
   }
 
+  // máscara do telefone: vai formatando enquanto a pessoa digita → (11) 98765-4321
+  var phone = form.querySelector('input[name="phone"]');
+  phone.addEventListener('input', function () {
+    var d = phone.value.replace(/\D/g, '').slice(0, 11);
+    var out = d;
+    if (d.length > 2) out = '(' + d.slice(0, 2) + ') ' + d.slice(2);
+    if (d.length > 6) {
+      var split = d.length === 11 ? 7 : 6; // celular tem 9 dígitos, fixo tem 8
+      out = '(' + d.slice(0, 2) + ') ' + d.slice(2, split) + '-' + d.slice(split);
+    }
+    phone.value = out;
+  });
+
   form.addEventListener('submit', async function (event) {
     event.preventDefault(); // impede o navegador de recarregar a página
 

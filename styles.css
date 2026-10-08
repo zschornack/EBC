@@ -202,12 +202,14 @@ h3 { font-size: 1.7rem; }
    ========================================================= */
 
 .hero {
+  --hero-tail: clamp(140px, 18vw, 260px); /* tamanho da "cauda" do vidro que some aos poucos */
   position: relative;
+  isolation: isolate; /* mantém o vidro numa camada abaixo da seção seguinte */
   min-height: 85vh;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   overflow: hidden;
-  border-bottom: 1px solid var(--line-on-dark);
+  padding-top: clamp(28px, 4vw, 56px); /* respiro abaixo do header */
   background-color: var(--dark-main);
 }
 
@@ -220,20 +222,24 @@ h3 { font-size: 1.7rem; }
   z-index: 0;
 }
 
-/* cartão de vidro */
+/* cartão de vidro: estica até o fim do hero e continua por baixo da
+   seção seguinte, sumindo aos poucos (mesmo efeito em qualquer tela) */
 .hero-content {
   position: relative;
   z-index: 1;
+  flex: 1; /* ocupa toda a altura do hero, até a borda de baixo */
   display: grid;
   grid-template-columns: 1.2fr .8fr;
   align-items: center;
   gap: clamp(32px, 6vw, 80px);
-  padding: 35px;
+  padding: 35px 35px calc(35px + var(--hero-tail) + var(--r));
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 32px;
+  border-radius: 32px 32px 0 0;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - var(--hero-tail) - var(--r)), transparent calc(100% - var(--r)));
+  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--hero-tail) - var(--r)), transparent calc(100% - var(--r)));
 }
 
 .hero-text { max-width: 720px; }
@@ -293,7 +299,7 @@ h3 { font-size: 1.7rem; }
 
 .announcement .eyebrow { color: var(--medium-main); }
 .announcement-inner { display: flex; align-items: center; justify-content: space-between; gap: 40px; }
-.announcement h2 { font-size: 2.5rem; }
+.announcement h2 { font-size: 2.5rem; margin-bottom: 10px; }
 
 .countdown { display: flex; gap: 25px; text-align: center; }
 .countdown div { min-width: 75px; }
@@ -709,11 +715,32 @@ html.modal-open { overflow: hidden; }
   background-image: linear-gradient(45deg, #000, var(--medium-main));
 }
 
-.teachers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; }
-.teacher-card { display: grid; grid-template-columns: 220px 1fr; gap: 30px; align-items: center; }
+.teachers-grid { display: grid; gap: clamp(20px, 3vw, 32px); max-width: 1000px; margin: 0 auto; }
 
+/* uma professora por linha, em cartão de vidro: o cartão cresce com o tamanho da biografia */
+.teacher-card {
+  --photo: clamp(180px, 24vw, 280px);
+  display: grid;
+  grid-template-columns: var(--photo) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(24px, 4vw, 56px);
+  padding: clamp(22px, 3.5vw, 44px);
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 32px;
+  background: rgba(255, 255, 255, .06);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* alterna: na segunda professora a foto vai para a direita */
+.teacher-card:nth-child(even) { grid-template-columns: minmax(0, 1fr) var(--photo); }
+.teacher-card:nth-child(even) .teacher-photo { order: 2; }
+
+/* serve tanto para <img> (foto real) quanto para o espaço reservado "FOTO" */
 .teacher-photo {
-  height: 280px;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -724,9 +751,17 @@ html.modal-open { overflow: hidden; }
 }
 
 .teacher-card h3 { margin-bottom: 6px; }
-.teacher-card .handle { display: inline-block; margin-bottom: 14px; font-size: .8rem; color: var(--light-main); }
+.teacher-card .handle { display: inline-block; margin-bottom: 18px; font-size: .8rem; color: var(--light-main); }
 .teacher-card .handle:hover { color: var(--cream); }
-.teacher-card p:last-child { font-size: .85rem; color: var(--light-main); }
+
+.teacher-bio {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--light-main);
+  text-align: justify;
+  hyphens: auto; /* quebra palavras com hífen para o justificado não abrir buracos */
+  -webkit-hyphens: auto;
+}
 
 
 /* =========================================================
@@ -818,7 +853,7 @@ details p { padding-top: 15px; max-width: 700px; color: var(--light-main); font-
 .waitlist-form input:focus,
 .waitlist-form select:focus { outline: 2px solid var(--medium-main); outline-offset: 1px; }
 
-.waitlist-form .button { align-self: end; background: var(--medium-main); color: var(--cream); }
+.waitlist-form .button { grid-column: 1 / -1; justify-self: start; margin-top: 8px; background: var(--medium-main); color: var(--cream); }
 .waitlist-form .button:hover { background: var(--dark-main); }
 .waitlist-form .button:disabled { opacity: .6; cursor: wait; transform: none; }
 
@@ -878,6 +913,16 @@ details p { padding-top: 15px; max-width: 700px; color: var(--light-main); font-
 
 
 /* =========================================================
+   TELAS MÉDIAS (até 1150px)
+   ========================================================= */
+
+@media (max-width: 1150px) {
+  /* abaixo disso os cartões 3/6/1 ficavam espremidos ao lado do texto */
+  .two-column { grid-template-columns: 1fr; gap: 50px; }
+}
+
+
+/* =========================================================
    TABLET (até 900px)
    ========================================================= */
 
@@ -916,15 +961,15 @@ details p { padding-top: 15px; max-width: 700px; color: var(--light-main); font-
   .hero-visual { min-height: 0; padding: 10px 0 30px; }
   .hero-books { margin-inline: auto; max-width: min(320px, 70vw); }
 
-  .two-column,
   .faq-layout,
   .waitlist-inner { grid-template-columns: 1fr; gap: 50px; }
+
+  .bookshelf-heading { flex-direction: column; align-items: flex-start; gap: 20px; }
 
   .announcement-inner { flex-direction: column; align-items: flex-start; gap: 28px; }
   .countdown { flex-wrap: wrap; }
 
   .program-grid,
-  .teachers-grid,
   .testimonial-grid { grid-template-columns: 1fr; }
 
   .process-grid,
@@ -946,11 +991,12 @@ details p { padding-top: 15px; max-width: 700px; color: var(--light-main); font-
   .section-heading { margin-bottom: 40px; }
 
   h2 { font-size: 2.3rem; }
+  h2 br { display: none; } /* as quebras manuais do desktop ficam estranhas no celular */
   h3 { font-size: 1.45rem; }
 
   /* Hero */
-  .hero { padding: 18px 0; }
-  .hero-content { grid-template-columns: minmax(0, 1fr); padding: 36px 22px 38px; }
+  .hero { padding-top: 18px; }
+  .hero-content { grid-template-columns: minmax(0, 1fr); padding: 36px 22px calc(38px + var(--hero-tail) + var(--r)); }
   .hero-text { min-width: 0; width: 100%; }
   .hero h1 { font-size: clamp(2.5rem, 11vw, 3.2rem); }
   .hero-description { font-size: 1.05rem; margin: 22px 0; }
@@ -984,15 +1030,16 @@ details p { padding-top: 15px; max-width: 700px; color: var(--light-main); font-
   /* Estante e livro aberto */
   .bookshelf { padding: 40px 12px 16px; }
   .spine { width: calc(var(--w) * .72); height: calc(var(--h) * .72); --fs: 15px; }
-  .bookshelf-heading { flex-direction: column; align-items: flex-start; gap: 20px; }
-
   .book-modal-inner { flex-direction: column; justify-content: center; gap: 28px; padding: 20px; }
   .book-3d { --bw: min(54vw, 30vh); }
   .book-info { text-align: center; }
 
   /* Professoras */
-  .teacher-card { grid-template-columns: 1fr; gap: 20px; }
-  .teacher-photo { height: 300px; }
+  .teacher-card,
+  .teacher-card:nth-child(even) { grid-template-columns: 1fr; gap: 22px; padding: 18px 18px 24px; }
+  .teacher-card:nth-child(even) .teacher-photo { order: 0; }
+  .teacher-photo { width: min(100%, 320px); }
+  .teacher-bio { font-size: .95rem; }
 
   /* Depoimentos */
   .testimonial { padding: 28px; min-height: 0; gap: 24px; }
@@ -1011,7 +1058,7 @@ details p { padding-top: 15px; max-width: 700px; color: var(--light-main); font-
   .waitlist-form { grid-template-columns: 1fr; }
   .waitlist-form input,
   .waitlist-form select { font-size: 16px; padding: 16px 14px; }
-  .waitlist-form .button { width: 100%; padding: 18px; }
+  .waitlist-form .button { width: 100%; padding: 18px; justify-self: stretch; }
 
   /* Rodapé */
   .site-footer { padding: calc(40px + var(--r)) 0 40px; }
