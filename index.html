@@ -443,15 +443,19 @@
           </p>
         </div>
 
-        <form class="waitlist-form">
+        <form
+          class="waitlist-form"
+          action="https://formspree.io/f/xoejvwey"
+          method="POST"
+        >
           <label>
             Nome do responsável
-            <input type="text" name="name" placeholder="Seu nome">
+            <input type="text" name="name" placeholder="Seu nome" required>
           </label>
 
           <label>
             E-mail
-            <input type="email" name="email" placeholder="voce@email.com">
+            <input type="email" name="email" placeholder="voce@email.com" required>
           </label>
 
           <label>
@@ -481,7 +485,9 @@
             </select>
           </label>
 
-          <button type="submit" class="button">Entrar na lista de espera</button>
+          <button type="submit" class="button">
+            Entrar na lista de espera
+          </button>
         </form>
 
       </div>

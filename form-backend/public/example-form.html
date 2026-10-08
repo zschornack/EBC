@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contato</title>
+  <style>
+    form { max-width: 420px; margin: 2rem auto; display: grid; gap: .75rem; font-family: system-ui, sans-serif; }
+    input, textarea, button { padding: .6rem; font: inherit; }
+    .hp { position: absolute; left: -9999px; }   /* honeypot, hidden from humans */
+    #status { min-height: 1.5em; }
+  </style>
+</head>
+<body>
+<form id="contact-form" novalidate>
+  <input name="name" placeholder="Nome" required maxlength="100">
+  <input name="email" type="email" placeholder="E-mail" required maxlength="254">
+  <input name="phone" placeholder="Telefone (opcional)" maxlength="30">
+  <textarea name="message" rows="5" placeholder="Mensagem" required maxlength="5000"></textarea>
+
+  <!-- Honeypot -->
+  <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+  <label><input type="checkbox" name="consent" required>
+    Concordo com o uso dos meus dados para contato (LGPD).</label>
+
+  <button type="submit">Enviar</button>
+  <div id="status" role="status"></div>
+</form>
+
+<script>
+  const API_URL = 'http://localhost:3000';   // <- change to your deployed backend URL
+
+  document.getElementById('contact-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target, status = document.getElementById('status'), btn = form.querySelector('button');
+    const fd = new FormData(form);
+    const payload = {
+      name: fd.get('name'), email: fd.get('email'), message: fd.get('message'),
+      phone: fd.get('phone') || undefined,
+      website: fd.get('website'),                 // honeypot
+      consent: fd.get('consent') === 'on',
+      source: location.pathname + location.search // e.g. /landing?utm_source=ads
+    };
+    btn.disabled = true; status.textContent = 'Enviando...';
+    try {
+      const res = await fetch(`${API_URL}/api/forms/contact`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+      });
+      if (res.ok) { status.textContent = 'Mensagem enviada. Obrigado!'; form.reset(); }
+      else if (res.status === 422) status.textContent = 'Confira os campos e tente novamente.';
+      else if (res.status === 429) status.textContent = 'Muitas tentativas. Aguarde um minuto.';
+      else status.textContent = 'Erro ao enviar. Tente novamente.';
+    } catch { status.textContent = 'Sem conexão com o servidor.'; }
+    finally { btn.disabled = false; }
+  });
+</script>
+</body>
+</html>
