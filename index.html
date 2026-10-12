@@ -8,14 +8,23 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&display=swap">
   <link rel="stylesheet" href="styles.css">
+  <link rel="preload" as="image" href="img/fav.webp">
+  <!-- liga a tela de carregamento (sem JavaScript ela nunca aparece) -->
+  <script>document.documentElement.classList.add('has-loader', 'is-loading');</script>
 </head>
 
 <body>
 
+  <!-- TELA DE CARREGAMENTO: some quando as imagens terminam de carregar -->
+  <div class="page-loader" id="page-loader" aria-hidden="true">
+    <img src="img/fav.webp" alt="" class="page-loader-logo" width="120" height="115">
+    <span class="page-loader-bar"></span>
+  </div>
+
   <header class="site-header">
     <nav class="navbar container">
       <a href="#home" class="logo">
-        <img src="img/fav.png" alt="English Book Club">
+        <img src="img/fav.webp" alt="English Book Club">
       </a>
 
       <div class="nav-links" id="nav-links">
@@ -141,7 +150,7 @@
           <article class="program-card little-reads">
             <p class="eyebrow">PARA CRIANÇAS DE 8 A 12 ANOS</p>
             <div class="logo-container">
-              <img src="img/little reads.png" alt="Little Reads" class="program-logo"> 
+              <img src="img/little-reads.webp" alt="Little Reads" class="program-logo"> 
             </div>
             <p>
               Inglês além do idioma, que ajuda a moldar quem o seu filho está se
@@ -161,7 +170,7 @@
           <article class="program-card featured book-talk">
             <p class="eyebrow">PARA ADOLESCENTES DE 13 A 17 ANOS</p>
             <div class="logo-container">
-              <img src="img/book and talk.png" alt="Book & Talk" class="program-logo">
+              <img src="img/book-and-talk.webp" alt="Book & Talk" class="program-logo">
             </div>
               <p>
               Para quem não quer apenas entender inglês — quer se expressar,
@@ -240,18 +249,35 @@
 
         <p class="shelf-hint">Clique em um livro para abri-lo</p>
 
+        <!-- ESTANTE: para adicionar um livro, copie um bloco <button class="spine" ...> ... </button>
+             e troque: as cores (--cover-bg = capa, --cover-fg = letras; opcional: --cover-accent = cor da
+             etiqueta no livro aberto, se --cover-fg ficar escura no fundo azul), data-tag (turma),
+             data-num, data-title, data-desc, data-cover (imagem da capa), aria-label e o título da lombada.
+             O livro "A ser revelado" deve continuar sendo o último. -->
         <div class="bookshelf">
-          <button class="spine cover-one" type="button" data-kind="little-reads" data-tag="LITTLE READS" data-num="LIVRO 01"
-              data-title="The Wind in the Willows" data-desc="As aventuras de Mole, Rat e seus amigos ao longo do rio." data-cover="img/books/the_wind_in_the_willows.jpeg" aria-label="Abrir The Wind in the Willows">
+          <button class="spine" style="--cover-bg: #185a35; --cover-fg: #e2c45b;" type="button" data-kind="little-reads" data-tag="LITTLE READS" data-num="LIVRO 01"
+              data-title="The Wind in the Willows" data-desc="As aventuras de Mole, Rat e seus amigos ao longo do rio." data-cover="img/books/the_wind_in_the_willows.webp" aria-label="Abrir The Wind in the Willows">
             <span class="spine-title">The Wind in the Willows</span>
           </button>
-          <button class="spine cover-two" type="button" data-kind="book-talk" data-tag="BOOK & TALK" data-num="LIVRO 02"
-              data-title="The Wizard of Oz" data-desc="A jornada de Dorothy pela Terra de Oz." data-cover="img/books/the_wizard_of_oz.jpg" aria-label="Abrir The Wizard of Oz">
+          <button class="spine" style="--cover-bg: #9bc3d7; --cover-fg: #df4c20;" type="button" data-kind="book-talk" data-tag="BOOK & TALK" data-num="LIVRO 02"
+              data-title="The Wizard of Oz" data-desc="A jornada de Dorothy pela Terra de Oz." data-cover="img/books/the_wizard_of_oz.webp" aria-label="Abrir The Wizard of Oz">
             <span class="spine-title">The Wizard of Oz</span>
           </button>
-          <button class="spine cover-three" type="button" data-kind="book-talk" data-tag="BOOK & TALK" data-num="LIVRO 03"
-              data-title="Charlotte's Web" data-desc="A amizade entre Wilbur, um porquinho, e Charlotte, uma aranha." data-cover="img/books/charlotte's_web.jpg" aria-label="Abrir Charlotte's Web">
+          <button class="spine" style="--cover-bg: #16863c; --cover-fg: #fff5dc;" type="button" data-kind="book-talk" data-tag="BOOK & TALK" data-num="LIVRO 03"
+              data-title="Charlotte's Web" data-desc="A amizade entre Wilbur, um porquinho, e Charlotte, uma aranha." data-cover="img/books/charlottes_web.webp" aria-label="Abrir Charlotte's Web">
             <span class="spine-title">Charlotte's Web</span>
+          </button>
+          <button class="spine" style="--cover-bg: #f2eee6; --cover-fg: #b8312f; --cover-accent: #ef7a72;" type="button" data-kind="book-talk" data-tag="BOOK & TALK" data-num="LIVRO 04"
+              data-title="Brave New World" data-desc="Uma sociedade “perfeita” que troca a liberdade pelo conforto." data-cover="img/books/brave-new-world.webp" aria-label="Abrir Brave New World">
+            <span class="spine-title">Brave New World</span>
+          </button>
+          <button class="spine" style="--cover-bg: #c9282a; --cover-fg: #f3ead6;" type="button" data-kind="book-talk" data-tag="BOOK & TALK" data-num="LIVRO 05"
+              data-title="Fahrenheit 451" data-desc="Num futuro em que os livros são proibidos, um bombeiro que os queima começa a lê-los." data-cover="img/books/fahrenheit-451.webp" aria-label="Abrir Fahrenheit 451">
+            <span class="spine-title">Fahrenheit 451</span>
+          </button>
+          <button class="spine" style="--cover-bg: #2a2a2c; --cover-fg: #d8a64a;" type="button" data-kind="book-talk" data-tag="BOOK & TALK" data-num="LIVRO 06"
+              data-title="The Hunger Games" data-desc="Katniss enfrenta um jogo de sobrevivência transmitido para todo o país." data-cover="img/books/the-hunger-games.webp" aria-label="Abrir The Hunger Games">
+            <span class="spine-title">The Hunger Games</span>
           </button>
           <button class="spine reveal" type="button" data-kind="upcoming" data-tag="EM BREVE" data-num="2027 ?"
                   data-title="A ser revelado" data-desc="O próximo capítulo está chegando." data-cover="" aria-label="Abrir A ser revelado">
@@ -326,7 +352,7 @@
         <div class="teachers-grid">
 
           <article class="teacher-card">
-            <img class="teacher-photo" src="img/teacher_gabryelle.jpg" alt="Professora Gabryelle Hayek" loading="lazy">
+            <img class="teacher-photo" src="img/teacher_gabryelle.webp" alt="Professora Gabryelle Hayek" loading="lazy">
             <div>
               <p class="eyebrow">PROFESSORA</p>
               <h3>Gabrielle Hayek</h3>
@@ -336,7 +362,7 @@
           </article>
 
           <article class="teacher-card">
-            <img class="teacher-photo" src="img/teacher_barbara.jpg" alt="Professora Barbara Regina" loading="lazy">
+            <img class="teacher-photo" src="img/teacher_barbara.webp" alt="Professora Barbara Regina" loading="lazy">
             <div>
               <p class="eyebrow">PROFESSORA</p>
               <h3>Barbara Regina</h3>
@@ -503,7 +529,7 @@
   <footer class="site-footer">
     <div class="container footer-inner">
       <div>
-        <a href="#home" class="logo"><img src="img/fav.png" alt="English Book Club"></a>
+        <a href="#home" class="logo"><img src="img/fav.webp" alt="English Book Club"></a>
         <p>Inglês através da literatura.</p>
       </div>
 

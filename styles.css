@@ -62,6 +62,66 @@ summary:focus-visible { outline: 2px solid var(--light-main); outline-offset: 3p
 
 
 /* =========================================================
+   TELA DE CARREGAMENTO
+   ========================================================= */
+
+.page-loader { display: none; }
+
+.has-loader .page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  background: radial-gradient(circle at 50% 45%, #1a4f80, var(--medium-main) 55%, #071e36);
+  transition: opacity .6s ease, visibility .6s;
+}
+
+html.is-loading { overflow: hidden; } /* não deixa rolar enquanto carrega */
+
+.page-loader.done { opacity: 0; visibility: hidden; }
+
+.page-loader-logo {
+  width: 120px;
+  height: auto;
+  padding: 10px;
+  border-radius: 24px;
+  background: var(--header-bg);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
+  animation: loader-breathe 1.8s ease-in-out infinite;
+}
+
+.page-loader-bar {
+  position: relative;
+  width: 140px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(148, 185, 255, .25);
+}
+
+.page-loader-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  border-radius: inherit;
+  background: var(--light-main);
+  animation: loader-slide 1.1s ease-in-out infinite;
+}
+
+@keyframes loader-breathe { 50% { transform: scale(1.05); } }
+@keyframes loader-slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .page-loader-logo, .page-loader-bar::after { animation: none; }
+}
+
+
+/* =========================================================
    HEADER
    ========================================================= */
 
@@ -217,7 +277,7 @@ h3 { font-size: 1.7rem; }
   content: "";
   position: absolute;
   inset: 0;
-  background: url("img/background_silk.png") center / cover no-repeat;
+  background: url("img/background_silk.webp") center / cover no-repeat;
   opacity: 0.4;
   z-index: 0;
 }
@@ -277,9 +337,9 @@ h3 { font-size: 1.7rem; }
 .hb::after { content: ""; position: absolute; inset: 0; border-radius: inherit;
   background: linear-gradient(115deg, rgba(255,255,255,.22), transparent 40%); }
 
-.hb1 { left: 0; top: 16%; rotate: -9deg; background-image: url("img/books/the_wind_in_the_willows.jpeg"); }
-.hb2 { left: 22%; top: 0; rotate: 2deg; z-index: 2; background-image: url("img/books/the_wizard_of_oz.jpg"); animation-delay: -2s; }
-.hb3 { right: 0; top: 20%; rotate: 11deg; background-image: url("img/books/charlotte's_web.jpg"); animation-delay: -4s; }
+.hb1 { left: 0; top: 16%; rotate: -9deg; background-image: url("img/books/the_wind_in_the_willows.webp"); }
+.hb2 { left: 22%; top: 0; rotate: 2deg; z-index: 2; background-image: url("img/books/the_wizard_of_oz.webp"); animation-delay: -2s; }
+.hb3 { right: 0; top: 20%; rotate: 11deg; background-image: url("img/books/charlottes_web.webp"); animation-delay: -4s; }
 
 .hero-books:hover .hb1 { rotate: -15deg; }
 .hero-books:hover .hb3 { rotate: 17deg; }
@@ -323,7 +383,7 @@ h3 { font-size: 1.7rem; }
   content: "";
   position: absolute;
   inset: 0;
-  background-image: url("img/background_glass.png");
+  background-image: url("img/background_glass.webp");
   background-size: 100vw auto;
   background-position: center top;
   background-repeat: repeat-y;
@@ -409,8 +469,8 @@ h3 { font-size: 1.7rem; }
   transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s;
 }
 
-.program-card.little-reads { background-image: url("img/yellow-paper-bg.png"); color: var(--dark-1); }
-.program-card.book-talk { background-image: url("img/pink-paper-bg.png"); color: var(--medium-main); }
+.program-card.little-reads { background-image: url("img/yellow-paper-bg.webp"); color: var(--dark-1); }
+.program-card.book-talk { background-image: url("img/pink-paper-bg.webp"); color: var(--medium-main); }
 
 .program-card.little-reads .eyebrow { color: var(--dark-1); }
 .program-card.book-talk .eyebrow { color: var(--medium-main); }
@@ -514,7 +574,7 @@ h3 { font-size: 1.7rem; }
   position: absolute;
   inset: 0;
   z-index: -1;
-  background-image: url("img/paper background.avif");
+  background-image: url("img/paper-background.webp");
   background-size: cover;
   background-position: center;
   opacity: .2;
@@ -548,9 +608,9 @@ h3 { font-size: 1.7rem; }
 }
 
 /* cores de cada livro */
-.cover-one { --cover-bg: #185a35; --cover-fg: #e2c45b; }
-.cover-two { --cover-bg: #9bc3d7; --cover-fg: #df4c20; }
-.cover-three { --cover-bg: #16863c; --cover-fg: #fff5dc; }
+/* cores de cada livro: definidas no próprio HTML, em style="--cover-bg: ...; --cover-fg: ..."
+   (--cover-bg = cor da capa, --cover-fg = cor das letras). Estas são as cores padrão. */
+.spine { --cover-bg: var(--medium-main); --cover-fg: var(--cream); }
 
 /* arte da lombada: usada na estante (.spine) e no livro 3D (.bk-spine) */
 .spine, .bk-spine {
@@ -696,9 +756,7 @@ html.modal-open { overflow: hidden; }
 .book-info { max-width: 380px; }
 .book-info h3 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 20px; }
 .book-info p:not(.eyebrow) { font-size: 1.1rem; margin-bottom: 30px; }
-.book-modal[data-book="cover-one"] .book-info .eyebrow { color: #e2c45b; }
-.book-modal[data-book="cover-two"] .book-info .eyebrow { color: #df4c20; }
-.book-modal[data-book="cover-three"] .book-info .eyebrow { color: #fff5dc; }
+.book-info .eyebrow { color: var(--book-accent, var(--light-main)); }
 .book-info .text-link { background: none; border: 0; cursor: pointer; }
 
 
@@ -1025,7 +1083,9 @@ details p { padding-top: 15px; max-width: 700px; color: var(--light-main); font-
 
   /* Estante e livro aberto */
   .bookshelf { padding: 40px 12px 16px; }
-  .spine { width: calc(var(--w) * .72); height: calc(var(--h) * .72); --fs: 15px; }
+  /* lombadas mais finas no celular para caberem todos os livros (se ainda faltar espaço, a estante rola para o lado) */
+  .spine { width: calc(var(--w) * .56); height: calc(var(--h) * .72); --fs: 13px; }
+  .reveal { margin-left: 12px; }
   .book-modal-inner { flex-direction: column; justify-content: center; gap: 28px; padding: 20px; }
   .book-3d { --bw: min(54vw, 30vh); }
   .book-info { text-align: center; }

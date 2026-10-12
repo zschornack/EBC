@@ -1,3 +1,29 @@
+// TELA DE CARREGAMENTO
+// Espera as imagens e as fontes carregarem e então some com um fade.
+// Se algo demorar demais, some sozinha depois de 8 segundos.
+(function () {
+  var loader = document.getElementById('page-loader');
+  var root = document.documentElement;
+  var finished = false;
+
+  function finish() {
+    if (finished) return;
+    finished = true;
+    loader.classList.add('done');
+    root.classList.remove('is-loading');
+    setTimeout(function () { loader.remove(); }, 700);
+  }
+
+  if (document.readyState === 'complete') { finish(); return; } // já estava tudo em cache
+
+  window.addEventListener('load', function () {
+    var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+    fonts.then(finish, finish);
+  });
+  setTimeout(finish, 8000); // trava de segurança
+})();
+
+
 // MENU HAMBÚRGUER (tablet e celular)
 (function () {
   var toggle = document.querySelector('.nav-toggle');
@@ -41,7 +67,6 @@
   var current = null, busy = false, ready = false;
   var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var T = function (ms) { return calm ? 1 : ms; };
-  var COVERS = ['cover-one', 'cover-two', 'cover-three', 'reveal'];
 
   // número em cada lombada + entrada da estante
   spines.forEach(function (s, i) {
@@ -84,8 +109,15 @@
     document.getElementById('bm-num').textContent = d.num;
     document.getElementById('bm-spine').innerHTML = spine.innerHTML;
     modal.dataset.kind = d.kind;
-    modal.dataset.book = COVERS.filter(function (c) { return spine.classList.contains(c); })[0];
-    book.className = 'book-3d ' + modal.dataset.book;
+    // as cores vêm do próprio livro (style="--cover-bg: ...; --cover-fg: ..." no HTML)
+    var css = getComputedStyle(spine);
+    var bg = css.getPropertyValue('--cover-bg'), fg = css.getPropertyValue('--cover-fg');
+    book.className = 'book-3d' + (spine.classList.contains('reveal') ? ' reveal' : '');
+    book.style.setProperty('--cover-bg', bg);
+    book.style.setProperty('--cover-fg', fg);
+    // cor da etiqueta da turma no livro aberto: usa --cover-accent se o livro tiver, senão a cor das letras
+    var accent = css.getPropertyValue('--cover-accent').trim() || fg;
+    modal.style.setProperty('--book-accent', d.kind === 'upcoming' ? '' : accent);
     document.getElementById('bm-front').style.backgroundImage = d.cover ? 'url("' + d.cover + '")' : '';
     book.classList.toggle('has-image', !!d.cover);
 
