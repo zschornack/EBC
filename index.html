@@ -8,6 +8,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&display=swap">
   <link rel="stylesheet" href="styles.css">
+
+  <!-- ícones do site (aba do navegador e atalho no celular) -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <meta name="theme-color" content="#103c65">
   <link rel="preload" as="image" href="img/fav.webp">
   <!-- liga a tela de carregamento (sem JavaScript ela nunca aparece) -->
   <script>document.documentElement.classList.add('has-loader', 'is-loading');</script>
@@ -242,8 +248,8 @@
             <h2>Histórias que lemos <br>juntos.</h2>
           </div>
           <p>
-            Três livros são explorados ao longo de seis meses. Esta estante é
-            atualizada a cada semestre, conforme novas obras são reveladas.
+            A cada semestre, cada turma explora três livros. Esta estante cresce
+            com as obras que já lemos juntos e com as próximas que serão reveladas.
           </p>
         </div>
 
@@ -259,11 +265,11 @@
               data-title="The Wind in the Willows" data-desc="As aventuras de Mole, Rat e seus amigos ao longo do rio." data-cover="img/books/the_wind_in_the_willows.webp" aria-label="Abrir The Wind in the Willows">
             <span class="spine-title">The Wind in the Willows</span>
           </button>
-          <button class="spine" style="--cover-bg: #9bc3d7; --cover-fg: #df4c20;" type="button" data-kind="book-talk" data-tag="BOOK & TALK" data-num="LIVRO 02"
+          <button class="spine" style="--cover-bg: #9bc3d7; --cover-fg: #df4c20;" type="button" data-kind="little-reads" data-tag="LITTLE READS" data-num="LIVRO 02"
               data-title="The Wizard of Oz" data-desc="A jornada de Dorothy pela Terra de Oz." data-cover="img/books/the_wizard_of_oz.webp" aria-label="Abrir The Wizard of Oz">
             <span class="spine-title">The Wizard of Oz</span>
           </button>
-          <button class="spine" style="--cover-bg: #16863c; --cover-fg: #fff5dc;" type="button" data-kind="book-talk" data-tag="BOOK & TALK" data-num="LIVRO 03"
+          <button class="spine" style="--cover-bg: #16863c; --cover-fg: #fff5dc;" type="button" data-kind="little-reads" data-tag="LITTLE READS" data-num="LIVRO 03"
               data-title="Charlotte's Web" data-desc="A amizade entre Wilbur, um porquinho, e Charlotte, uma aranha." data-cover="img/books/charlottes_web.webp" aria-label="Abrir Charlotte's Web">
             <span class="spine-title">Charlotte's Web</span>
           </button>
@@ -479,7 +485,7 @@
 
           <label>
             Telefone (WhatsApp)
-            <input type="tel" name="phone" placeholder="(11) 98765-4321" inputmode="numeric" maxlength="15" autocomplete="tel-national" pattern="\(\d{2}\) \d{4,5}-\d{4}" title="Digite o telefone com DDD, ex.: (11) 98765-4321" required>
+            <input type="tel" name="phone" placeholder="(11) 98765-4321" inputmode="numeric" maxlength="15" autocomplete="tel-national" required>
           </label>
 
           <label>

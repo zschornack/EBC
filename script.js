@@ -244,14 +244,40 @@
   var status = document.getElementById('form-status');
   var button = form.querySelector('button[type="submit"]');
   var buttonText = button.textContent;
+  var phone = form.querySelector('input[name="phone"]');
+
+  var PHONE_ERROR = 'O número de WhatsApp não está certo. Confira o DDD e o número, ex.: (11) 98765-4321.';
+  var MESSAGES = {
+    invalid_phone: PHONE_ERROR,
+    invalid_name: 'Confira o nome do responsável.',
+    invalid_age: 'Selecione a idade do aluno.',
+    invalid_program: 'Selecione a turma de interesse.'
+  };
+
+  // DDDs que existem no Brasil
+  var DDDS = [11,12,13,14,15,16,17,18,19,21,22,24,27,28,31,32,33,34,35,37,38,41,42,43,44,45,46,47,48,49,
+    51,53,54,55,61,62,63,64,65,66,67,68,69,71,73,74,75,77,79,81,82,83,84,85,86,87,88,89,91,92,93,94,95,96,97,98,99];
+
+  // Confere se o telefone faz sentido: DDD real, celular com 9 na frente, fixo começando de 2 a 5
+  function phoneIsValid(value) {
+    var d = value.replace(/\D/g, '');
+    if (d.length !== 10 && d.length !== 11) return false;
+    if (DDDS.indexOf(Number(d.slice(0, 2))) === -1) return false;
+    if (d.length === 11) return d[2] === '9';
+    return '2345'.indexOf(d[2]) !== -1;
+  }
 
   function showStatus(message, type) {
     status.textContent = message;
     status.className = 'form-status ' + (type || '');
   }
 
+  function markPhone(invalid) {
+    phone.classList.toggle('invalid', invalid);
+    phone.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+  }
+
   // máscara do telefone: vai formatando enquanto a pessoa digita → (11) 98765-4321
-  var phone = form.querySelector('input[name="phone"]');
   phone.addEventListener('input', function () {
     var d = phone.value.replace(/\D/g, '').slice(0, 11);
     var out = d;
@@ -261,12 +287,22 @@
       out = '(' + d.slice(0, 2) + ') ' + d.slice(2, split) + '-' + d.slice(split);
     }
     phone.value = out;
+    if (phone.classList.contains('invalid') && phoneIsValid(out)) { markPhone(false); showStatus(''); }
   });
 
   form.addEventListener('submit', async function (event) {
     event.preventDefault(); // impede o navegador de recarregar a página
 
-    // usa a validação do próprio navegador (campos obrigatórios, e-mail válido)
+    // 1. telefone: mensagem específica, antes de qualquer outra coisa
+    if (phone.value.trim() !== '' && !phoneIsValid(phone.value)) {
+      markPhone(true);
+      showStatus(PHONE_ERROR, 'error');
+      phone.focus();
+      return;
+    }
+    markPhone(false);
+
+    // 2. demais campos: validação do próprio navegador (obrigatórios)
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
@@ -282,12 +318,19 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(Object.fromEntries(new FormData(form)))
       });
-      if (!response.ok) throw new Error('Falha no envio');
+
+      if (!response.ok) {
+        // o servidor diz qual campo está errado (ex.: { error: "invalid_phone" })
+        var data = await response.json().catch(function () { return {}; });
+        if (data.error === 'invalid_phone') { markPhone(true); phone.focus(); }
+        showStatus(MESSAGES[data.error] || 'Não foi possível enviar agora. Tente novamente em alguns instantes.', 'error');
+        return;
+      }
 
       form.reset();
       showStatus('Obrigado! Você está na lista de espera. Entraremos em contato em breve.', 'success');
     } catch (error) {
-      showStatus('Não foi possível enviar agora. Tente novamente em alguns instantes.', 'error');
+      showStatus('Não foi possível enviar agora. Verifique sua conexão e tente novamente.', 'error');
     } finally {
       button.disabled = false;
       button.textContent = buttonText;

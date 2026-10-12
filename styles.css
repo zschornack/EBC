@@ -904,6 +904,7 @@ details p { padding-top: 15px; max-width: 700px; color: var(--light-main); font-
 }
 
 .waitlist-form input::placeholder { color: rgba(16, 60, 101, .5); }
+.waitlist-form input.invalid { border-color: var(--dark-2); box-shadow: 0 0 0 2px rgba(173, 37, 37, .25); }
 .waitlist-form input:focus,
 .waitlist-form select:focus { outline: 2px solid var(--medium-main); outline-offset: 1px; }
 
