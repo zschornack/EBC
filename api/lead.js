@@ -10,6 +10,13 @@ const AGES = ['8', '9', '10', '11', '12', '13', '14', '15', '16', '17'];
 const DDDS = [11,12,13,14,15,16,17,18,19,21,22,24,27,28,31,32,33,34,35,37,38,41,42,43,44,45,46,47,48,49,
   51,53,54,55,61,62,63,64,65,66,67,68,69,71,73,74,75,77,79,81,82,83,84,85,86,87,88,89,91,92,93,94,95,96,97,98,99];
 
+// Ano da próxima turma (fevereiro ou agosto, horário de Brasília) — igual ao site
+function launchYear(now = new Date()) {
+  const y = now.getUTCFullYear();
+  const next = [Date.UTC(y, 1, 1, 3), Date.UTC(y, 7, 1, 3), Date.UTC(y + 1, 1, 1, 3)].find((d) => d > now.getTime());
+  return new Date(next).getUTCFullYear();
+}
+
 // Remove quebras de linha e espaços extras, e limita o tamanho
 function clean(value, maxLength) {
   return String(value ?? '').replace(/[\r\n]+/g, ' ').trim().slice(0, maxLength);
@@ -61,7 +68,7 @@ function emailTemplate({ name, phone, age, program, date, whatsappUrl }) {
     <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;">
 
       <div style="background:#103c65;padding:28px 32px;">
-        <p style="margin:0 0 6px;color:#94b9ff;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700;">English Book Club · Lista de espera 2027</p>
+        <p style="margin:0 0 6px;color:#94b9ff;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700;">English Book Club · Lista de espera ${launchYear()}</p>
         <h1 style="margin:0;color:#f5f1e8;font-family:Georgia,serif;font-weight:400;font-size:26px;">Novo cadastro no site</h1>
       </div>
 
@@ -138,7 +145,7 @@ export default async function handler(req, res) {
       subject: `Novo cadastro na lista de espera: ${name} (${program})`,
       // versão em texto simples, para programas de e-mail que não mostram HTML
       text:
-        `Novo cadastro na lista de espera 2027\n\n` +
+        `Novo cadastro na lista de espera ${launchYear()}\n\n` +
         `Responsável: ${name}\n` +
         `Telefone: ${phone}\n` +
         `Idade do aluno: ${age} anos\n` +

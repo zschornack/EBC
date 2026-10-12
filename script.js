@@ -203,21 +203,34 @@
 })();
 
 
+// PRÓXIMA ABERTURA DE TURMAS
+// As turmas começam em 1º de fevereiro e 1º de agosto, à meia-noite de Brasília.
+// Esta regra é usada pelo contador e pelo ano da lista de espera.
+function nextLaunchDate(now) {
+  var year = now.getUTCFullYear();
+  // Meia-noite em Brasília = 03:00 em UTC. Meses em JS começam em 0 (0 = jan).
+  var candidates = [
+    Date.UTC(year, 1, 1, 3),     // 1º de fevereiro deste ano
+    Date.UTC(year, 7, 1, 3),     // 1º de agosto deste ano
+    Date.UTC(year + 1, 1, 1, 3)  // 1º de fevereiro do ano que vem
+  ];
+  return candidates.find(function (date) { return date > now.getTime(); });
+}
+
+
+// ANO DA LISTA DE ESPERA
+// Mostra o ano da próxima turma: 2027 até a turma de agosto de 2027 começar, depois 2028, e assim por diante.
+(function () {
+  var year = new Date(nextLaunchDate(new Date())).getUTCFullYear();
+  document.querySelectorAll('[data-launch-year]').forEach(function (el) { el.textContent = year; });
+  document.querySelectorAll('[data-launch-year-num]').forEach(function (el) { el.dataset.num = year + ' ?'; });
+})();
+
+
 // CONTAGEM REGRESSIVA
 // Conta sempre até o próximo 1º de fevereiro ou 1º de agosto, à meia-noite
 // no horário de Brasília (UTC-3). Quando a data chega, passa sozinho para a próxima.
 (function () {
-  function nextLaunchDate(now) {
-    var year = now.getUTCFullYear();
-    // Meia-noite em Brasília = 03:00 em UTC. Meses em JS começam em 0 (0 = jan).
-    var candidates = [
-      Date.UTC(year, 1, 1, 3),     // 1º de fevereiro deste ano
-      Date.UTC(year, 7, 1, 3),     // 1º de agosto deste ano
-      Date.UTC(year + 1, 1, 1, 3)  // 1º de fevereiro do ano que vem
-    ];
-    return candidates.find(function (date) { return date > now.getTime(); });
-  }
-
   function update() {
     var now = new Date();
     var total = Math.floor((nextLaunchDate(now) - now.getTime()) / 1000);
