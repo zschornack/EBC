@@ -29,7 +29,10 @@
   var toggle = document.querySelector('.nav-toggle');
   var links = document.getElementById('nav-links');
 
+  var scrollWhenOpened = 0;
+
   function setOpen(open) {
+    if (open) scrollWhenOpened = window.scrollY;
     links.classList.toggle('open', open);
     toggle.classList.toggle('open', open);
     toggle.setAttribute('aria-expanded', open);
@@ -51,6 +54,12 @@
   window.addEventListener('resize', function () {
     if (window.innerWidth > 900) setOpen(false);
   });
+
+  // fecha o menu quando a pessoa começa a rolar a página
+  // (tolerância de 12px para não fechar com um toque que mexe a tela sem querer)
+  window.addEventListener('scroll', function () {
+    if (links.classList.contains('open') && Math.abs(window.scrollY - scrollWhenOpened) > 12) setOpen(false);
+  }, { passive: true });
 })();
 
 
