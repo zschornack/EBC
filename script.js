@@ -228,12 +228,19 @@ function nextLaunchDate(now) {
 
 
 // CONTAGEM REGRESSIVA
-// Conta sempre até o próximo 1º de fevereiro ou 1º de agosto, à meia-noite
-// no horário de Brasília (UTC-3). Quando a data chega, passa sozinho para a próxima.
+// Conta até a data abaixo (horário de Brasília). Para mudar, é só trocar a data:
+// formato "ANO-MÊS-DIATHORA:MINUTO:SEGUNDO-03:00" (o -03:00 é o fuso de Brasília).
+// Depois que essa data passa, o contador volta sozinho a contar até a próxima
+// abertura de turma (1º de fevereiro ou 1º de agosto), então nunca fica zerado.
+var COUNTDOWN_DATE = '2026-12-11T00:00:00-03:00';
+
 (function () {
+  var fixedDate = Date.parse(COUNTDOWN_DATE);
+
   function update() {
     var now = new Date();
-    var total = Math.floor((nextLaunchDate(now) - now.getTime()) / 1000);
+    var target = fixedDate > now.getTime() ? fixedDate : nextLaunchDate(now);
+    var total = Math.floor((target - now.getTime()) / 1000);
     var values = {
       days: Math.floor(total / 86400),
       hours: Math.floor((total % 86400) / 3600),

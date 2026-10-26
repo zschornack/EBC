@@ -424,11 +424,11 @@ h3 { font-size: 1.7rem; }
 
 .stats div {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto; /* texto à esquerda, número à direita */
+  grid-template-columns: auto minmax(0, 1fr); /* número à esquerda, texto à direita */
   align-items: center;                         /* os dois centralizados na vertical */
-  gap: 10px;
+  gap: 18px;
   min-height: 155px;
-  padding: 22px 22px 22px 20px;
+  padding: 22px 22px 22px 26px;
   border: 1px solid rgba(16, 60, 101, .14);
   border-radius: 26px;
   background: rgba(245, 241, 232, .96);
@@ -436,7 +436,6 @@ h3 { font-size: 1.7rem; }
 
 /* nesta seção o número é o destaque do cartão (não um detalhe apagado) */
 .stats strong {
-  order: 2;
   font-family: var(--font-display);
   font-size: clamp(4.5rem, 6.5vw, 6.5rem);
   font-style: italic;
@@ -1070,7 +1069,7 @@ details p { padding-top: 15px; max-width: 700px; color: var(--light-main); font-
   /* Sobre */
   .section-text { font-size: 1.05rem; }
   .stats { grid-template-columns: 1fr; gap: 12px; }
-  .stats div { min-height: 120px; padding: 20px 28px 20px 24px; }
+  .stats div { min-height: 120px; padding: 20px 24px 20px 28px; }
 
   /* Modalidades */
   .program-grid { gap: 16px; }
