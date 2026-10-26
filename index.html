@@ -493,7 +493,9 @@
           </p>
         </div>
 
-        <form class="waitlist-form" id="waitlist-form" novalidate>
+        <!-- data-turnstile-sitekey: cole entre as aspas a "Site Key" do Turnstile (anti-robô).
+             Enquanto estiver vazio, o anti-robô fica desligado e o formulário funciona normalmente. -->
+        <form class="waitlist-form" id="waitlist-form" novalidate data-turnstile-sitekey="">
           <label>
             Nome do responsável
             <input type="text" name="name" placeholder="Seu nome" maxlength="100" autocomplete="name" required>
@@ -537,9 +539,16 @@
             <input type="text" name="website" tabindex="-1" autocomplete="off">
           </label>
 
+          <!-- anti-robô (Turnstile): aparece só se a Site Key estiver configurada acima -->
+          <div class="turnstile-box" id="turnstile-box"></div>
+
           <button type="submit" class="button">Entrar na lista de espera</button>
 
           <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+
+          <p class="form-privacy">
+            Usaremos seus dados apenas para entrar em contato sobre as turmas do English Book Club.
+          </p>
         </form>
 
       </div>

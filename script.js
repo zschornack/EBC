@@ -277,6 +277,7 @@ var COUNTDOWN_DATE = '2026-12-11T00:00:00-03:00';
 
   var PHONE_ERROR = 'O número de WhatsApp não está certo. Confira o DDD e o número, ex.: (11) 98765-4321.';
   var MESSAGES = {
+    captcha: 'Não conseguimos confirmar que você não é um robô. Recarregue a página e tente de novo.',
     invalid_phone: PHONE_ERROR,
     invalid_name: 'Confira o nome do responsável.',
     invalid_age: 'Selecione a idade do aluno.',
@@ -294,6 +295,22 @@ var COUNTDOWN_DATE = '2026-12-11T00:00:00-03:00';
     if (DDDS.indexOf(Number(d.slice(0, 2))) === -1) return false;
     if (d.length === 11) return d[2] === '9';
     return '2345'.indexOf(d[2]) !== -1;
+  }
+
+  // ANTI-ROBÔ (Turnstile): só liga se a Site Key estiver preenchida no <form> do index.html
+  var siteKey = (form.dataset.turnstileSitekey || '').trim();
+  var widgetId = null;
+  if (siteKey) {
+    window.onTurnstileLoad = function () {
+      widgetId = window.turnstile.render('#turnstile-box', { sitekey: siteKey, language: 'pt-br', size: 'flexible' });
+    };
+    var ts = document.createElement('script');
+    ts.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad';
+    ts.async = true;
+    document.head.appendChild(ts);
+  }
+  function resetTurnstile() {
+    if (widgetId !== null && window.turnstile) window.turnstile.reset(widgetId);
   }
 
   function showStatus(message, type) {
@@ -353,10 +370,12 @@ var COUNTDOWN_DATE = '2026-12-11T00:00:00-03:00';
         var data = await response.json().catch(function () { return {}; });
         if (data.error === 'invalid_phone') { markPhone(true); phone.focus(); }
         showStatus(MESSAGES[data.error] || 'Não foi possível enviar agora. Tente novamente em alguns instantes.', 'error');
+        resetTurnstile();
         return;
       }
 
       form.reset();
+      resetTurnstile();
       showStatus('Obrigado! Você está na lista de espera. Entraremos em contato em breve.', 'success');
     } catch (error) {
       showStatus('Não foi possível enviar agora. Verifique sua conexão e tente novamente.', 'error');

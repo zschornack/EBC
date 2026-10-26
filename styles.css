@@ -916,6 +916,11 @@ details p { padding-top: 15px; max-width: 700px; color: var(--light-main); font-
 
 .form-status { grid-column: 1 / -1; font-size: .9rem; font-weight: 500; }
 .form-status:empty { display: none; }
+
+.turnstile-box { grid-column: 1 / -1; }
+.turnstile-box:empty { display: none; }
+
+.form-privacy { grid-column: 1 / -1; font-size: .78rem; opacity: .75; }
 .form-status.success { color: var(--medium-main); }
 .form-status.error { color: var(--dark-2); }
 
