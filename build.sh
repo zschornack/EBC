@@ -2,7 +2,7 @@
 # PUBLICAÇÃO NA CLOUDFLARE
 # Copia para a pasta "dist" só os arquivos que devem ficar públicos no site.
 # Assim o PDF de lançamento, o script da planilha e outros arquivos internos não ficam acessíveis.
-# (O backend em "functions/" é publicado separadamente pela própria Cloudflare.)
+# (O backend — worker/index.js + functions/api/lead.js — é empacotado pelo "wrangler deploy".)
 set -e
 rm -rf dist
 mkdir dist

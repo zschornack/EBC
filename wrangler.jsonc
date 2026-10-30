@@ -1,0 +1,18 @@
+// CONFIGURAÇÃO DA CLOUDFLARE (Workers)
+// - "main": o arquivo que recebe as requisições (worker/index.js)
+// - "assets": a pasta com o site pronto, gerada pelo build.sh (dist)
+// - "keep_vars": mantém as variáveis cadastradas no painel a cada nova publicação
+// - "observability": guarda os logs do backend para consulta no painel
+{
+  "name": "englishbookclub",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "keep_vars": true,
+  "observability": {
+    "enabled": true
+  }
+}

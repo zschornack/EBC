@@ -1,6 +1,6 @@
-// BACKEND (Cloudflare Pages Functions)
+// BACKEND DO FORMULÁRIO (Cloudflare)
 // Recebe o formulário do site, guarda o lead na planilha do Google e avisa a cliente por e-mail.
-// Na Cloudflare, o arquivo functions/api/lead.js vira o endereço: https://seusite.com/api/lead
+// Na Cloudflare, o worker/index.js entrega para cá tudo o que chega em: https://seusite.com/api/lead
 //
 // ORDEM DE SEGURANÇA DOS LEADS
 //   1. confere se não é robô (Turnstile)
@@ -9,7 +9,7 @@
 //   4. manda o e-mail de aviso (Resend)
 //   O cadastro só dá erro para a família se a planilha E o e-mail falharem ao mesmo tempo.
 //
-// CONFIGURAÇÕES (cadastradas no painel da Cloudflare, nunca no código):
+// CONFIGURAÇÕES (cadastradas no painel da Cloudflare → Variáveis e segredos, nunca no código):
 //   SHEET_WEBHOOK_URL  endereço do script da planilha do Google
 //   SHEET_SECRET       senha combinada entre o site e a planilha
 //   RESEND_API_KEY     chave do Resend
