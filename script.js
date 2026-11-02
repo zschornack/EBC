@@ -280,6 +280,7 @@ var COUNTDOWN_DATE = '2026-12-11T00:00:00-03:00';
     captcha: 'Não conseguimos confirmar que você não é um robô. Recarregue a página e tente de novo.',
     invalid_phone: PHONE_ERROR,
     invalid_name: 'Confira o nome do responsável.',
+    invalid_student_name: 'Confira o nome do aluno.',
     invalid_age: 'Selecione a idade do aluno.',
     invalid_program: 'Selecione a turma de interesse.'
   };

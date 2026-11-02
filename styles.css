@@ -888,6 +888,7 @@ details p { padding-top: 15px; max-width: 700px; color: var(--light-main); font-
 
 .waitlist-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .waitlist-form label { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; }
+.waitlist-form .field-wide { grid-column: 1 / -1; } /* campo que ocupa a linha inteira */
 
 .waitlist-form input,
 .waitlist-form select {

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste de nivelamento — English Book Club</title>
+  <meta name="description" content="Descubra seu nível de inglês com o teste de nivelamento do English Book Club.">
+  <!-- página fora do Google: só acessa quem recebe o link. Para aparecer nas buscas, apague a linha abaixo. -->
+  <meta name="robots" content="noindex">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="nivelamento.css">
+
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <meta name="theme-color" content="#103c65">
+</head>
+
+<body class="level-page">
+
+  <header class="site-header">
+    <nav class="navbar container">
+      <a href="/" class="logo"><img src="img/fav.webp" alt="English Book Club — página inicial"></a>
+      <a href="/" class="button button-small">Conheça o clube</a>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- APRESENTAÇÃO -->
+    <section class="level-hero">
+      <div class="container level-narrow">
+        <p class="eyebrow">Teste de nivelamento</p>
+        <h1>Qual é o seu nível <em>de inglês?</em></h1>
+        <p class="level-lead">
+          São perguntas de múltipla escolha, das mais fáceis às mais difíceis. Responda sozinho e sem consultar nada:
+          se não souber uma resposta, é só deixar em branco. O resultado vai direto para a nossa professora,
+          que entra em contato para indicar a turma ideal.
+        </p>
+        <ul class="level-facts">
+          <li><strong>52</strong> perguntas</li>
+          <li><strong>~20</strong> minutos</li>
+          <li><strong>5</strong> partes</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- TESTE -->
+    <section class="level-body">
+      <div class="container level-narrow">
+
+        <!-- data-turnstile-sitekey: a mesma "Site Key" do Turnstile usada no formulário da home -->
+        <form id="level-form" class="level-form" novalidate data-turnstile-sitekey="0x4AAAAAAFsrVWm7eBP1Dq4X">
+
+          <fieldset class="level-card level-student">
+            <legend class="level-card-title">Antes de começar</legend>
+            <p class="level-hint">Quem vai fazer o teste?</p>
+
+            <div class="level-fields">
+              <label>
+                Nome do aluno
+                <input type="text" name="studentName" maxlength="100" autocomplete="off" required>
+              </label>
+              <label>
+                Idade
+                <input type="text" name="age" inputmode="numeric" maxlength="2" pattern="[0-9]{1,2}" autocomplete="off" required>
+              </label>
+              <label>
+                Nome do responsável
+                <input type="text" name="name" maxlength="100" autocomplete="name" required>
+              </label>
+              <label>
+                WhatsApp do responsável
+                <input type="tel" name="phone" placeholder="(11) 98765-4321" inputmode="numeric" maxlength="15" autocomplete="tel-national" required>
+              </label>
+            </div>
+          </fieldset>
+
+          <!-- as perguntas são montadas aqui pelo nivelamento.js (a partir de nivelamento-perguntas.js) -->
+          <div id="level-questions"></div>
+
+          <div class="level-card level-submit">
+            <p class="level-card-title">Tudo pronto?</p>
+            <p class="level-hint">Confira se respondeu tudo o que sabia. Depois de enviar, não dá para mudar as respostas.</p>
+
+            <!-- Armadilha anti-spam: humanos não veem este campo, robôs preenchem -->
+            <label class="honeypot" aria-hidden="true">
+              Website
+              <input type="text" name="website" tabindex="-1" autocomplete="off">
+            </label>
+
+            <div class="turnstile-box" id="turnstile-box"></div>
+
+            <button type="submit" class="button">Enviar teste</button>
+            <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+            <p class="form-privacy">
+              Usaremos estes dados apenas para indicar a turma ideal e entrar em contato sobre o English Book Club.
+            </p>
+          </div>
+        </form>
+
+        <!-- aparece depois do envio -->
+        <div class="level-card level-done" id="level-done" hidden tabindex="-1">
+          <p class="eyebrow">Teste enviado</p>
+          <h2>Obrigado!</h2>
+          <p>Recebemos suas respostas. A nossa professora vai analisar o resultado e entrar em contato pelo WhatsApp para indicar a turma ideal.</p>
+          <a href="/" class="button">Conhecer o English Book Club</a>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- contador de perguntas respondidas (fica preso no rodapé da tela) -->
+  <div class="level-progress" id="level-progress" aria-hidden="true">
+    <span id="level-progress-text">0 de 52</span>
+    <span class="level-progress-bar"><span id="level-progress-fill"></span></span>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <a href="/" class="logo"><img src="img/fav.webp" alt="English Book Club"></a>
+        <p>Inglês através da literatura.</p>
+      </div>
+      <div class="footer-links">
+        <a href="/#about">Sobre</a>
+        <a href="/#faq">FAQ</a>
+        <a href="/#waitlist">Lista de espera</a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="nivelamento.js"></script>
+</body>
+</html>
