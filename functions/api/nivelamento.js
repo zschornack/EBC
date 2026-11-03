@@ -1,7 +1,11 @@
 // BACKEND DO TESTE DE NIVELAMENTO (Cloudflare)
 // Recebe as respostas da página /nivelamento, CORRIGE AQUI NO SERVIDOR (o gabarito nunca vai para o navegador),
 // guarda o resultado na aba "Nivelamento" da planilha e manda para a cliente um e-mail com acertos e erros.
-// O worker/index.js entrega para cá tudo o que chega em: https://seusite.com/api/nivelamento
+//
+// Dois endereços (o worker/index.js entrega os dois para cá):
+//   /api/nivelamento/parte  → ao fim de cada parte, responde só "passou" ou "não passou"
+//                             (a página usa isso para seguir ou encerrar o teste)
+//   /api/nivelamento        → no fim, recebe tudo, corrige, salva e manda o e-mail
 //
 // Mesma ordem de segurança da lista de espera: robô? → valida → planilha → e-mail.
 // Só dá erro para o aluno se a planilha E o e-mail falharem ao mesmo tempo.
@@ -26,31 +30,61 @@ if (ANSWERS.length !== QUESTIONS.length) {
 
 /* =========================================================
    CORREÇÃO
+   O teste para na primeira parte (bloco) com menos de 60% de acertos.
+   Por isso o navegador só manda as respostas até onde o aluno chegou,
+   e as partes seguintes ficam como "não realizadas".
    ========================================================= */
 
+// em que posição da lista cada bloco começa e termina
+const RANGES = BLOCKS.reduce((list, block) => {
+  const start = list.length ? list[list.length - 1].end : 0;
+  return list.concat({ start, end: start + block.questions.length });
+}, []);
+
+function normalizeAnswer(raw, question) {
+  const letter = String(raw ?? '').trim().toLowerCase();
+  const index = LETTERS.indexOf(letter);
+  return index >= 0 && index < question.options.length ? letter : '';
+}
+
+function gradeItem(question, raw) {
+  const given = normalizeAnswer(raw, question);
+  const accepted = [].concat(ANSWERS[question.number - 1] ?? []);
+  return { ...question, given, accepted, correct: given !== '' && accepted.includes(given) };
+}
+
+const blockPassed = (correct, total) => correct >= Math.ceil(total * PASS_RATE);
+
 function grade(rawAnswers) {
-  const items = QUESTIONS.map((question, i) => {
-    const raw = String(rawAnswers[i] ?? '').trim().toLowerCase();
-    const given = LETTERS.indexOf(raw) >= 0 && LETTERS.indexOf(raw) < question.options.length ? raw : '';
-    const accepted = [].concat(ANSWERS[i] ?? []);
-    return { ...question, given, accepted, correct: given !== '' && accepted.includes(given) };
-  });
-
-  const blocks = BLOCKS.map((block, b) => {
-    const mine = items.filter((item) => item.block === b);
-    const correct = mine.filter((item) => item.correct).length;
-    return { level: block.level, correct, total: mine.length, passed: correct >= Math.ceil(mine.length * PASS_RATE) };
-  });
-
-  // nível estimado = último bloco aprovado em sequência
+  const blocks = [];
+  let items = [];
   let level = BELOW_A1;
-  for (const block of blocks) {
-    if (!block.passed) break;
-    level = LEVEL_NAMES[block.level] || block.level;
-  }
+  let open = true; // o aluno ainda pode ter feito este bloco?
 
+  BLOCKS.forEach((block, b) => {
+    const { start, end } = RANGES[b];
+    const taken = open && rawAnswers.length >= end;
+    if (!taken) {
+      open = false;
+      blocks.push({ level: block.level, taken: false, correct: 0, total: end - start, passed: false });
+      return;
+    }
+    const mine = QUESTIONS.slice(start, end).map((question, i) => gradeItem(question, rawAnswers[start + i]));
+    const correct = mine.filter((item) => item.correct).length;
+    const passed = blockPassed(correct, mine.length);
+    items = items.concat(mine);
+    blocks.push({ level: block.level, taken: true, correct, total: mine.length, passed });
+    if (passed) level = LEVEL_NAMES[block.level] || block.level;
+    else open = false; // reprovou: o teste parou aqui
+  });
+
+  const takenCount = blocks.filter((block) => block.taken).length;
   const correct = items.filter((item) => item.correct).length;
-  return { items, blocks, correct, total: items.length, level };
+  const finished = takenCount === BLOCKS.length && blocks[BLOCKS.length - 1].passed;
+  const stopNote = takenCount === 0 ? 'não respondeu nenhuma parte'
+    : takenCount === BLOCKS.length ? `fez as ${BLOCKS.length} partes`
+    : `parou na parte ${takenCount} de ${BLOCKS.length}`;
+  return { items, blocks, correct, total: items.length, level, takenCount, finished, stopNote };
 }
 
 const optionText = (item, letter) => `${letter}) ${item.options[LETTERS.indexOf(letter)]}`;
@@ -61,16 +95,28 @@ const optionText = (item, letter) => `${letter}) ${item.options[LETTERS.indexOf(
    ========================================================= */
 
 function emailHtml(result, test, savedToSheet) {
-  const percent = Math.round((result.correct / result.total) * 100);
+  const percent = result.total ? Math.round((result.correct / result.total) * 100) : 0;
+  const pass = Math.round(PASS_RATE * 100);
 
-  const blockRows = result.blocks.map((block, b) => `
+  const blockRows = result.blocks.map((block, b) => {
+    const cell = 'padding:8px 0;border-bottom:1px solid #e6e0d2;font-size:14px;';
+    if (!block.taken) {
+      return `
           <tr>
-            <td style="padding:8px 0;border-bottom:1px solid #e6e0d2;color:#103c65;font-size:14px;">Bloco ${b + 1} · ${block.level}</td>
-            <td style="padding:8px 0;border-bottom:1px solid #e6e0d2;color:#103c65;font-size:14px;font-weight:700;text-align:right;">${block.correct}/${block.total}</td>
-            <td style="padding:8px 0 8px 12px;border-bottom:1px solid #e6e0d2;font-size:13px;text-align:right;color:${block.passed ? '#1e7b3c' : '#ad2525'};">${block.passed ? 'aprovado' : 'abaixo de ' + Math.round(PASS_RATE * 100) + '%'}</td>
-          </tr>`).join('');
+            <td style="${cell}color:#9aa5b1;">Parte ${b + 1} · ${block.level}</td>
+            <td style="${cell}color:#9aa5b1;text-align:right;">—</td>
+            <td style="${cell}padding-left:12px;font-size:13px;text-align:right;color:#9aa5b1;">não chegou nesta parte</td>
+          </tr>`;
+    }
+    return `
+          <tr>
+            <td style="${cell}color:#103c65;">Parte ${b + 1} · ${block.level}</td>
+            <td style="${cell}color:#103c65;font-weight:700;text-align:right;">${block.correct}/${block.total}</td>
+            <td style="${cell}padding-left:12px;font-size:13px;text-align:right;color:${block.passed ? '#1e7b3c' : '#ad2525'};">${block.passed ? 'aprovado' : `abaixo de ${pass}% · teste encerrado`}</td>
+          </tr>`;
+  }).join('');
 
-  const details = result.blocks.map((block, b) => {
+  const details = result.blocks.filter((block) => block.taken).map((block, b) => {
     const rows = result.items.filter((item) => item.block === b).map((item) => {
       const mark = item.correct ? '✅' : item.given ? '❌' : '⬜';
       const answer = item.given
@@ -87,7 +133,7 @@ function emailHtml(result, test, savedToSheet) {
           </tr>`;
     }).join('');
     return `
-        <p style="margin:28px 0 4px;color:#103c65;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;">Bloco ${b + 1} · ${block.level} — ${block.correct}/${block.total}</p>
+        <p style="margin:28px 0 4px;color:#103c65;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;">Parte ${b + 1} · ${block.level} — ${block.correct}/${block.total}</p>
         <table style="width:100%;border-collapse:collapse;">${rows}
         </table>`;
   }).join('');
@@ -103,15 +149,16 @@ function emailHtml(result, test, savedToSheet) {
           ${emailRow('Idade', `${escapeHtml(test.age)} anos`)}
           ${emailRow('Responsável', escapeHtml(test.name))}
           ${emailRow('Telefone', escapeHtml(test.phone))}
-          ${emailRow('Acertos', `${result.correct} de ${result.total} (${percent}%)`)}
           ${emailRow('Nível estimado', escapeHtml(result.level))}
+          ${emailRow('Até onde foi', escapeHtml(result.stopNote))}
+          ${emailRow('Acertos', `${result.correct} de ${result.total} respondidas (${percent}%)`)}
           ${test.minutes === null ? '' : emailRow('Tempo de prova', `${test.minutes} min`)}
         </table>
 
-        <p style="margin:28px 0 4px;color:#103c65;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;">Resultado por bloco</p>
+        <p style="margin:28px 0 4px;color:#103c65;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;">Resultado por parte</p>
         <table style="width:100%;border-collapse:collapse;">${blockRows}
         </table>
-        <p style="margin:10px 0 0;color:#9aa5b1;font-size:12px;">O nível estimado é o último bloco em que o aluno acertou pelo menos ${Math.round(PASS_RATE * 100)}%, sem pular nenhum antes dele. É uma referência: a avaliação final é da professora.</p>
+        <p style="margin:10px 0 0;color:#9aa5b1;font-size:12px;">O teste encerra sozinho na primeira parte com menos de ${pass}% de acertos, então as partes seguintes não aparecem. O nível estimado é a última parte aprovada. É uma referência: a avaliação final é da professora.</p>
         ${whatsappButton(test.whatsapp)}
         ${details}`,
   });
@@ -126,9 +173,9 @@ function emailText(result, test, savedToSheet) {
   return `Teste de nivelamento\n\n` +
     (savedToSheet ? '' : 'ATENÇÃO: este resultado NÃO foi salvo na planilha. Copie manualmente.\n\n') +
     `Aluno: ${test.studentName}\nIdade: ${test.age} anos\nResponsável: ${test.name}\nTelefone: ${test.phone}\n\n` +
-    `Acertos: ${result.correct} de ${result.total}\nNível estimado: ${result.level}\n` +
+    `Nível estimado: ${result.level}\nAté onde foi: ${result.stopNote}\nAcertos: ${result.correct} de ${result.total} respondidas\n` +
     (test.minutes === null ? '' : `Tempo de prova: ${test.minutes} min\n`) + '\n' +
-    result.blocks.map((block, b) => `Bloco ${b + 1} (${block.level}): ${block.correct}/${block.total}`).join('\n') +
+    result.blocks.map((block, b) => `Parte ${b + 1} (${block.level}): ${block.taken ? `${block.correct}/${block.total}` : 'não chegou nesta parte'}`).join('\n') +
     `\n\n${lines.join('\n')}\n\nWhatsApp: ${test.whatsapp}\n\nRecebido em ${test.date}`;
 }
 
@@ -159,7 +206,7 @@ export async function onRequestPost({ request, env }) {
   if (!/^\d{1,2}$/.test(age) || Number(age) < 5) return json({ error: 'invalid_age' }, 400);
   if (!name) return json({ error: 'invalid_name' }, 400);
   if (!phoneDigits) return json({ error: 'invalid_phone' }, 400);
-  if (!answers) return json({ error: 'invalid_data' }, 400);
+  if (!answers || answers.length < RANGES[0].end) return json({ error: 'invalid_data' }, 400);
 
   // 3. Corrige
   const result = grade(answers);
@@ -179,14 +226,14 @@ export async function onRequestPost({ request, env }) {
   const savedToSheet = await saveToSheet(env, {
     type: 'nivelamento',
     ...test,
-    score: `${result.correct} de ${result.total}`, // "de" em vez de "/": a planilha não confunde com data
+    score: `${result.correct} de ${result.total} (${result.stopNote})`, // "de" em vez de "/": a planilha não confunde com data
     level: result.level,
-    blocks: result.blocks.map((block) => `${block.correct} de ${block.total}`),
+    blocks: result.blocks.map((block) => (block.taken ? `${block.correct} de ${block.total}` : '—')),
     missed: result.items.filter((item) => !item.correct).map((item) => item.number).join(', ') || 'nenhuma',
     answers: result.items.map((item) => `${item.number}${item.given || '-'}`).join(' '),
   });
   const emailSent = await sendEmail(env, {
-    subject: `Nivelamento: ${studentName}, ${age} anos — ${result.correct}/${result.total} · ${result.level}`,
+    subject: `Nivelamento: ${studentName}, ${age} anos — ${result.level} (${result.stopNote})`,
     text: emailText(result, test, savedToSheet),
     html: emailHtml(result, test, savedToSheet),
   });
@@ -195,4 +242,23 @@ export async function onRequestPost({ request, env }) {
 
   console.error('NIVELAMENTO PERDIDO — planilha e e-mail falharam:', JSON.stringify({ ...test, answers }));
   return json({ error: 'unavailable' }, 503);
+}
+
+
+/* =========================================================
+   ENDEREÇO /api/nivelamento/parte (só aceita POST)
+   Recebe { block: 0..4, answers: [...] } e devolve { passed: true/false }.
+   Não diz quais questões estavam certas: o gabarito continua escondido.
+   ========================================================= */
+
+export async function onRequestCheck({ request }) {
+  const body = await readBody(request);
+  const b = body && body.block;
+  if (!Number.isInteger(b) || b < 0 || b >= BLOCKS.length || !Array.isArray(body.answers)) {
+    return json({ error: 'invalid_data' }, 400);
+  }
+  const { start, end } = RANGES[b];
+  if (body.answers.length !== end - start) return json({ error: 'invalid_data' }, 400);
+  const correct = QUESTIONS.slice(start, end).filter((question, i) => gradeItem(question, body.answers[i]).correct).length;
+  return json({ passed: blockPassed(correct, end - start), last: b === BLOCKS.length - 1 });
 }

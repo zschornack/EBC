@@ -3,17 +3,17 @@
    Usa as cores, fontes, header, botões e rodapé do styles.css; aqui só o que é desta página.
    ========================================================= */
 
-.level-narrow { width: min(90%, 760px); }
-.level-page [hidden] { display: none !important; } /* garante que o formulário some depois do envio */
+.level-narrow { width: min(90%, 720px); }
+.level-page [hidden] { display: none !important; } /* garante que só a tela atual aparece */
 
 /* ---------- apresentação ---------- */
 
-.level-hero { padding: 90px 0 calc(90px + var(--r)); }
+.level-hero { padding: 80px 0 calc(80px + var(--r)); }
 .level-hero h1 { font-size: clamp(2.8rem, 7vw, 5rem); margin-bottom: 26px; }
 .level-hero h1 em { display: block; color: var(--light-main); }
-.level-lead { font-size: 1.12rem; max-width: 620px; opacity: .92; }
+.level-lead { font-size: 1.1rem; max-width: 620px; opacity: .92; }
 
-.level-facts { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; list-style: none; }
+.level-facts { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; list-style: none; }
 .level-facts li {
   padding: 10px 18px;
   border: 1px solid var(--line-on-dark);
@@ -21,44 +21,42 @@
   font-size: .85rem;
   color: var(--light-main);
 }
-.level-facts strong { font-family: var(--font-display); font-weight: 400; font-size: 1.25rem; color: var(--cream); margin-right: 4px; }
+.level-facts strong { font-family: var(--font-display); font-weight: 400; font-size: 1.2rem; color: var(--cream); margin-right: 4px; }
 
 /* ---------- corpo (fundo azul claro com topo arredondado, como as seções da home) ---------- */
 
 .level-body {
   position: relative;
   margin-top: calc(var(--r) * -1);
-  padding: calc(60px + var(--r)) 0 140px;
+  padding: calc(56px + var(--r)) 0 120px;
+  min-height: 70vh;
   border-radius: var(--r) var(--r) 0 0;
   background: var(--light-main);
   color: var(--medium-main);
   box-shadow: 0 -10px 28px -12px rgba(0, 0, 0, .28);
 }
 
-.level-form { display: grid; gap: 24px; }
-fieldset { border: 0; min-width: 0; }
-/* tira o título (legend) de cima da borda do fieldset, para ele se comportar como um texto normal */
-fieldset > legend { float: left; width: 100%; }
-fieldset > legend + * { clear: both; }
-
 .level-card {
   background: var(--cream);
   border-radius: 28px;
-  padding: 34px 36px;
+  padding: 36px;
   box-shadow: 0 18px 40px -24px rgba(16, 60, 101, .45);
+  scroll-margin-top: 110px;
 }
+.level-card:focus { outline: none; }
 
-.level-card-title {
-  font-family: var(--font-display);
-  font-size: 1.9rem;
-  line-height: 1.1;
-  margin-bottom: 6px;
-  padding: 0;
-}
-.level-card-title span { font-size: 1.1rem; opacity: .55; }
+.level-card-title { font-family: var(--font-display); font-size: 1.9rem; line-height: 1.1; margin-bottom: 6px; }
 .level-hint { font-size: .95rem; opacity: .8; margin-bottom: 22px; }
 
-/* ---------- dados do aluno ---------- */
+.level-card .button { background: var(--medium-main); color: var(--cream); padding: 17px 30px; }
+.level-card .button:hover { background: var(--dark-main); }
+.level-card .button:disabled { opacity: .6; cursor: wait; transform: none; }
+
+/* ---------- 1. dados do aluno ---------- */
+
+.level-student { display: grid; }
+.level-student .button { justify-self: start; margin-top: 26px; }
+.level-student .form-status { margin-top: 14px; }
 
 .level-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 20px; }
 .level-fields label { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; font-weight: 500; }
@@ -80,140 +78,111 @@ fieldset > legend + * { clear: both; }
 .level-fields input:focus { outline: 2px solid var(--medium-main); outline-offset: 1px; }
 .level-fields input.invalid { border-color: var(--dark-2); box-shadow: 0 0 0 2px rgba(173, 37, 37, .25); }
 
-/* ---------- perguntas ---------- */
+/* ---------- 2. pergunta da vez ---------- */
 
-.level-block { display: grid; gap: 6px; }
-.level-block .level-card-title { margin-bottom: 10px; }
+.quiz-top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+.quiz-part { font-family: var(--font-display); font-size: 1.6rem; line-height: 1.1; }
+.quiz-part span { font-size: 1rem; opacity: .55; }
+.quiz-count { font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .7; white-space: nowrap; }
 
-.level-question { padding: 22px 0; border-top: 1px solid var(--line); scroll-margin-top: 120px; }
-.level-question legend {
-  display: flex;
-  gap: 14px;
-  align-items: baseline;
-  padding: 0;
-  margin-bottom: 14px;
-  font-size: 1.08rem;
-  font-weight: 500;
-  line-height: 1.45;
-}
-.level-num {
-  flex: none;
-  min-width: 34px;
-  height: 34px;
-  display: inline-grid;
-  place-items: center;
-  border-radius: 999px;
-  background: var(--medium-main);
-  color: var(--cream);
-  font-size: .8rem;
-  font-weight: 700;
-  transform: translateY(-2px);
-}
-.level-question.is-missing .level-num { background: var(--dark-2); }
+.quiz-bar { height: 5px; margin: 16px 0 34px; border-radius: 5px; background: rgba(16, 60, 101, .12); overflow: hidden; }
+.quiz-bar span { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--medium-main); transition: width .35s ease; }
 
-.level-options { display: grid; gap: 8px; padding-left: 48px; }
+.quiz-question.is-entering { animation: quiz-in .35s ease both; }
+@keyframes quiz-in { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+
+.quiz-text { font-size: 1.35rem; font-weight: 500; line-height: 1.45; margin-bottom: 24px; }
+
+.quiz-options { display: grid; gap: 10px; }
 
 .level-option {
-  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 11px 14px;
-  border: 1px solid rgba(16, 60, 101, .2);
-  border-radius: 14px;
+  gap: 14px;
+  width: 100%;
+  padding: 15px 16px;
+  border: 1px solid rgba(16, 60, 101, .22);
+  border-radius: 16px;
   background: #fff;
+  color: var(--medium-main);
+  font: inherit;
+  font-size: 1.05rem;
+  text-align: left;
   cursor: pointer;
-  transition: border-color .15s, background .15s, color .15s;
+  transition: border-color .15s, background .15s, color .15s, transform .15s;
 }
-.level-option:hover { border-color: var(--medium-main); }
-
-/* o círculo do rádio fica invisível; a letra faz o papel dele */
-.level-option input { position: absolute; opacity: 0; pointer-events: none; }
+.level-option:hover { border-color: var(--medium-main); transform: translateY(-1px); }
+.level-option:focus-visible { outline: 2px solid var(--medium-main); outline-offset: 2px; }
 
 .level-letter {
   flex: none;
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   display: grid;
   place-items: center;
   border: 1px solid rgba(16, 60, 101, .35);
   border-radius: 999px;
-  font-size: .78rem;
+  font-size: .8rem;
   font-weight: 700;
   text-transform: uppercase;
 }
 
-.level-option:has(input:checked) { background: var(--medium-main); border-color: var(--medium-main); color: var(--cream); }
-.level-option input:checked + .level-letter { background: var(--light-main); border-color: var(--light-main); color: var(--medium-main); }
-.level-option:has(input:focus-visible) { outline: 2px solid var(--medium-main); outline-offset: 2px; }
+.level-option.is-selected { background: var(--medium-main); border-color: var(--medium-main); color: var(--cream); }
+.level-option.is-selected .level-letter { background: var(--light-main); border-color: var(--light-main); color: var(--medium-main); }
 
-/* ---------- envio ---------- */
-
-.level-submit { display: grid; gap: 14px; }
-.level-submit .level-hint { margin-bottom: 4px; }
-.level-submit .button { justify-self: start; background: var(--medium-main); color: var(--cream); padding: 17px 30px; }
-.level-submit .button:hover { background: var(--dark-main); }
-.level-submit .button:disabled { opacity: .6; cursor: wait; transform: none; }
-
-.level-done { text-align: center; padding: 54px 36px; }
-.level-done:focus { outline: none; }
-.level-done .eyebrow { color: var(--medium-main); }
-.level-done h2 { margin-bottom: 18px; }
-.level-done p:not(.eyebrow) { max-width: 480px; margin: 0 auto 28px; }
-.level-done .button { background: var(--medium-main); color: var(--cream); }
-.level-done .button:hover { background: var(--dark-main); }
-
-/* ---------- contador preso no rodapé ---------- */
-
-.level-progress {
-  position: fixed;
-  left: 50%;
-  bottom: 18px;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 18px;
-  border-radius: 999px;
-  background: var(--medium-main);
-  color: var(--cream);
-  font-size: .8rem;
+.quiz-actions { display: flex; justify-content: space-between; margin-top: 26px; }
+.quiz-link {
+  padding: 10px 4px;
+  border: 0;
+  background: none;
+  color: var(--medium-main);
+  font: inherit;
+  font-size: .78rem;
   font-weight: 700;
-  white-space: nowrap;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, .3);
-  transform: translate(-50%, 140%);
-  transition: transform .3s ease;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
 }
-.level-progress.is-visible { transform: translate(-50%, 0); }
-.level-progress-bar { width: 120px; height: 4px; border-radius: 4px; background: rgba(148, 185, 255, .3); overflow: hidden; }
-.level-progress-bar span { display: block; height: 100%; width: 0; background: var(--light-main); transition: width .3s; }
+.quiz-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.quiz-link:disabled { opacity: .3; cursor: default; text-decoration: none; }
 
-/* o rodapé sobe sobre o corpo, igual à home */
-.level-page .site-footer {
-  position: relative;
-  margin-top: calc(var(--r) * -1);
-  border-radius: var(--r) var(--r) 0 0;
-}
+/* ---------- 3, 4, 5. telas de intervalo, envio e obrigado ---------- */
+
+.level-center { text-align: center; padding: 54px 36px; }
+.level-center .eyebrow { color: var(--medium-main); }
+.level-center h2 { margin-bottom: 18px; }
+.level-center > p:not(.eyebrow):not(.form-status):not(.form-privacy) { max-width: 480px; margin: 0 auto 28px; }
+
+.level-checking-text { font-size: 1.05rem; }
+#checking-retry { margin-top: 22px; }
+
+.level-finish { display: grid; justify-items: center; gap: 0; }
+.level-finish .turnstile-box { width: min(100%, 320px); margin-bottom: 18px; }
+.level-finish .form-status { margin-top: 16px; }
+.level-finish .form-privacy { margin-top: 18px; max-width: 420px; }
 
 /* ---------- celular ---------- */
 
 @media (max-width: 700px) {
-  .level-hero { padding: 60px 0 calc(60px + var(--r)); }
+  .level-hero { padding: 56px 0 calc(56px + var(--r)); }
   .level-lead { font-size: 1.02rem; }
-  .level-body { padding: calc(36px + var(--r)) 0 120px; }
-  .level-narrow { width: min(92%, 760px); }
+  .level-body { padding: calc(32px + var(--r)) 0 100px; }
+  .level-narrow { width: min(92%, 720px); }
   .level-card { padding: 26px 20px; border-radius: 22px; }
   .level-card-title { font-size: 1.6rem; }
   .level-fields { grid-template-columns: 1fr; }
   .level-fields label { font-size: .78rem; }
   .level-fields input { font-size: 16px; padding: 16px 14px; } /* 16px evita zoom automático no iPhone */
-  .level-question legend { font-size: 1.02rem; gap: 10px; }
-  .level-num { min-width: 30px; height: 30px; }
-  .level-options { padding-left: 0; }
-  .level-option { padding: 13px 12px; }
-  .level-submit .button { width: 100%; justify-self: stretch; padding: 18px; }
+  .level-student .button { width: 100%; justify-self: stretch; padding: 18px; }
+  .quiz-part { font-size: 1.35rem; }
+  .quiz-bar { margin: 14px 0 26px; }
+  .quiz-text { font-size: 1.2rem; }
+  .level-option { padding: 15px 14px; font-size: 1rem; }
+  .level-center { padding: 40px 22px; }
+  .level-center .button { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .level-progress, .level-progress-bar span { transition: none; }
+  .quiz-question.is-entering { animation: none; }
+  .quiz-bar span { transition: none; }
 }

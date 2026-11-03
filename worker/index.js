@@ -1,14 +1,16 @@
 // PORTA DE ENTRADA DO SITE NA CLOUDFLARE (Workers)
 // - /api/lead         → lista de espera da home   (functions/api/lead.js)
 // - /api/nivelamento  → teste de nivelamento      (functions/api/nivelamento.js)
+//   (/api/nivelamento/parte: confere, ao fim de cada parte, se o aluno segue ou o teste acaba)
 // - todo o resto      → arquivos do site (pasta dist, gerada pelo build.sh)
 
 import { onRequestPost as lead } from '../functions/api/lead.js';
-import { onRequestPost as nivelamento } from '../functions/api/nivelamento.js';
+import { onRequestPost as nivelamento, onRequestCheck as nivelamentoParte } from '../functions/api/nivelamento.js';
 
 const ROUTES = {
   '/api/lead': lead,
   '/api/nivelamento': nivelamento,
+  '/api/nivelamento/parte': nivelamentoParte,
 };
 
 export default {
