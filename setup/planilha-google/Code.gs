@@ -16,23 +16,52 @@
  * editar (lápis) → Versão: "Nova versão" → Implantar. A URL continua a mesma.
  */
 
+// Cada aba: nome + colunas. Cada coluna diz de onde vem o valor.
+// O script grava PELO NOME DA COLUNA (não pela posição): pode mover, pintar ou acrescentar colunas suas
+// na planilha à vontade. Se faltar alguma coluna daqui, ela é criada sozinha no próximo envio.
 const SHEETS = {
   leads: {
     name: 'Leads',
-    headers: ['Data', 'Responsável', 'Aluno', 'Telefone', 'Idade', 'Turma', 'WhatsApp', 'Status'],
-    row: function (d) { return [d.name, d.studentName, d.phone, d.age, d.program, d.whatsapp]; },
+    columns: [
+      ['Data', function (d) { return d.date; }],
+      ['Responsável', function (d) { return d.name; }],
+      ['Aluno', function (d) { return d.studentName; }],
+      ['Telefone', function (d) { return d.phone; }],
+      ['Idade', function (d) { return d.age; }],
+      ['Turma', function (d) { return d.program; }],
+      ['WhatsApp', function (d) { return d.whatsapp; }],
+      ['Status', function () { return 'Novo'; }],
+    ],
   },
   nivelamento: {
     name: 'Nivelamento',
-    headers: ['Data', 'Aluno', 'Idade', 'Responsável', 'Telefone', 'Acertos', 'Nível estimado',
-      'Bloco A1', 'Bloco A2', 'Bloco B1', 'Bloco B2', 'Bloco C1', 'Erros e em branco', 'Respostas', 'WhatsApp', 'Status'],
-    row: function (d) {
-      const blocks = (d.blocks || []).slice(0, 5);
-      while (blocks.length < 5) blocks.push('');
-      return [d.studentName, d.age, d.name, d.phone, d.score, d.level].concat(blocks, [d.missed, d.answers, d.whatsapp]);
-    },
+    columns: [
+      ['Data', function (d) { return d.date; }],
+      ['Aluno', function (d) { return d.studentName; }],
+      ['Idade', function (d) { return d.age; }],
+      ['Responsável', function (d) { return d.name; }],
+      ['Telefone', function (d) { return d.phone; }],
+      ['Acertos', function (d) { return d.score; }],
+      ['Nível estimado', function (d) { return d.level; }],
+      ['Bloco A1', function (d) { return (d.blocks || [])[0]; }],
+      ['Bloco A2', function (d) { return (d.blocks || [])[1]; }],
+      ['Bloco B1', function (d) { return (d.blocks || [])[2]; }],
+      ['Bloco B2', function (d) { return (d.blocks || [])[3]; }],
+      ['Bloco C1', function (d) { return (d.blocks || [])[4]; }],
+      ['Erros e em branco', function (d) { return d.missed; }],
+      ['Respostas', function (d) { return d.answers; }],
+      ['WhatsApp', function (d) { return d.whatsapp; }],
+      ['Status', function () { return 'Novo'; }],
+    ],
   },
 };
+
+// Abrir a URL do script no navegador mostra qual versão do código está respondendo.
+// (Serve para conferir se a URL cadastrada na Cloudflare é a implantação certa.)
+const VERSION = '25/11/2026 · grava pelo nome da coluna';
+function doGet() {
+  return ContentService.createTextOutput('English Book Club · script da planilha · versão ' + VERSION);
+}
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -47,9 +76,8 @@ function doPost(e) {
 
     lock.waitLock(10000); // evita que dois envios ao mesmo tempo se atrapalhem
 
-    const sheet = getSheet(config);
-    const date = Utilities.formatDate(new Date(), 'America/Sao_Paulo', 'dd/MM/yyyy HH:mm');
-    sheet.appendRow([date].concat(config.row(data).map(safe), ['Novo']));
+    data.date = Utilities.formatDate(new Date(), 'America/Sao_Paulo', 'dd/MM/yyyy HH:mm');
+    appendRecord(getSheet(config), config, data);
 
     return reply({ ok: true });
   } catch (err) {
@@ -59,27 +87,55 @@ function doPost(e) {
   }
 }
 
-// Cria a aba com o cabeçalho na primeira vez
+// Acha (ou cria) a aba; na primeira vez escreve o cabeçalho
 function getSheet(config) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(config.name);
   if (!sheet) sheet = ss.insertSheet(config.name);
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(config.headers);
-    sheet.getRange(1, 1, 1, config.headers.length).setFontWeight('bold').setBackground('#bed5ff');
+    const titles = config.columns.map(function (c) { return c[0]; });
+    sheet.appendRow(titles);
+    sheet.getRange(1, 1, 1, titles.length).setFontWeight('bold').setBackground('#bed5ff');
     sheet.setFrozenRows(1);
   }
-  if (config === SHEETS.leads) addStudentColumn(sheet);
   return sheet;
 }
 
-// A aba "Leads" antiga não tinha a coluna "Aluno": cria a coluna logo depois de "Responsável",
-// sem bagunçar os cadastros que já estavam lá (eles ficam com "Aluno" em branco).
-function addStudentColumn(sheet) {
-  const header = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0];
-  if (header.indexOf('Aluno') !== -1 || header[1] !== 'Responsável') return;
-  sheet.insertColumnAfter(2);
-  sheet.getRange(1, 3).setValue('Aluno').setFontWeight('bold').setBackground('#bed5ff');
+// "  Responsavel " e "Responsável" contam como a mesma coluna
+function norm(text) {
+  return String(text || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function readHeader(sheet) {
+  const width = Math.max(sheet.getLastColumn(), 1);
+  return sheet.getRange(1, 1, 1, width).getValues()[0].map(norm);
+}
+
+// Grava uma linha nova colocando cada valor embaixo da coluna com o mesmo nome
+function appendRecord(sheet, config, data) {
+  let header = readHeader(sheet);
+
+  // cria as colunas que faltarem (os cadastros antigos ficam com elas em branco)
+  config.columns.forEach(function (column, i) {
+    if (header.indexOf(norm(column[0])) !== -1) return;
+    // coloca a coluna nova logo depois da coluna que vem antes dela na lista (ex.: "Aluno" depois de "Responsável")
+    const previous = i > 0 ? header.indexOf(norm(config.columns[i - 1][0])) : -1;
+    let position; // número da coluna nova, começando em 1
+    if (previous !== -1) {
+      sheet.insertColumnAfter(previous + 1);
+      position = previous + 2;
+    } else {
+      position = header.filter(String).length ? sheet.getLastColumn() + 1 : 1;
+    }
+    sheet.getRange(1, position).setValue(column[0]).setFontWeight('bold').setBackground('#bed5ff');
+    header = readHeader(sheet);
+  });
+
+  const row = header.map(function (title) {
+    const column = config.columns.filter(function (c) { return norm(c[0]) === title; })[0];
+    return column ? safe(column[1](data)) : '';
+  });
+  sheet.appendRow(row);
 }
 
 // Impede que alguém coloque uma fórmula maliciosa no nome (ex.: "=IMPORTXML(...)")

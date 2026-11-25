@@ -386,3 +386,42 @@ var COUNTDOWN_DATE = '2026-12-11T00:00:00-03:00';
     }
   });
 })();
+
+
+/* ---------- Depoimentos: "ver mais" e print ampliado ---------- */
+(function () {
+  const wall = document.getElementById('feedback-wall');
+  if (!wall) return;
+  const more = document.getElementById('feedback-more');
+  const dialog = document.getElementById('feedback-dialog');
+  const big = dialog.querySelector('img');
+
+  // esconde o botão se não houver nada escondido (ex.: poucos prints)
+  function updateButton() {
+    const hidden = Array.from(wall.querySelectorAll('.feedback')).some((el) => el.offsetParent === null);
+    more.parentElement.hidden = !hidden && !wall.classList.contains('is-open');
+  }
+  updateButton();
+  window.addEventListener('resize', updateButton);
+
+  more.addEventListener('click', () => {
+    const open = wall.classList.toggle('is-open');
+    more.setAttribute('aria-expanded', String(open));
+    more.textContent = open ? 'Ver menos' : 'Ver mais depoimentos';
+    if (!open) wall.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  wall.addEventListener('click', (event) => {
+    const button = event.target.closest('.feedback-open');
+    if (!button || typeof dialog.showModal !== 'function') return;
+    const img = button.querySelector('img');
+    big.src = img.currentSrc || img.src;
+    big.alt = img.alt;
+    dialog.showModal();
+    dialog.scrollTop = 0;
+  });
+
+  dialog.querySelector('.feedback-close').addEventListener('click', () => dialog.close());
+  // clicar fora do print fecha
+  dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
+})();

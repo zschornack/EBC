@@ -823,29 +823,73 @@ html.modal-open { overflow: hidden; }
 
 .testimonials-section { background: var(--cream); color: var(--medium-main); }
 .testimonials-section .eyebrow { color: var(--medium-main); }
+.feedback-note { margin-top: 18px; max-width: 460px; font-size: .9rem; opacity: .75; }
 
-.testimonial-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
+/* mural de prints: colunas tipo "masonry", cada print mantém a proporção original */
+.feedback-wall { columns: 3; column-gap: 22px; }
+.feedback { break-inside: avoid; margin: 0 0 22px; }
+.feedback-open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 14px 34px -20px rgba(16, 60, 101, .55);
+  cursor: zoom-in;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.feedback-open:hover { transform: translateY(-3px); box-shadow: 0 20px 40px -20px rgba(16, 60, 101, .6); }
+.feedback-open:focus-visible { outline: 3px solid var(--medium-main); outline-offset: 3px; }
+.feedback-open img { display: block; width: 100%; height: auto; }
 
-.testimonial {
-  min-height: 230px;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  border-radius: 24px;
-  background: var(--light-main);
+/* fechado: mostra só os primeiros; o botão abre o resto */
+.feedback-wall:not(.is-open) .feedback:nth-child(n + 10) { display: none; }
+.feedback-more { display: flex; justify-content: center; margin-top: 18px; }
+.feedback-more .button { background: var(--medium-main); color: var(--cream); }
+.feedback-more .button:hover { background: var(--dark-main); }
+.feedback-more[hidden] { display: none; }
+
+/* print ampliado */
+.feedback-dialog {
+  margin: auto; /* centraliza (o reset do site zera a margem padrão do dialog) */
+  max-width: min(92vw, 720px);
+  max-height: 92vh;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: #fff;
+  overflow: auto;
+}
+.feedback-dialog::backdrop { background: rgba(10, 25, 45, .82); }
+.feedback-dialog img { display: block; width: 100%; height: auto; }
+.feedback-close {
+  position: sticky;
+  top: 10px;
+  float: right;
+  margin: 10px 10px -52px 0;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--medium-main);
+  color: var(--cream);
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 1;
 }
 
-.quote { font-family: var(--font-display); font-size: 1.5rem; font-style: italic; }
-.testimonial span { font-size: .7rem; }
-
-.testimonial.screenshot {
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  background: var(--medium-main);
-  color: var(--light-main);
-  font-size: .7rem;
+@media (max-width: 1000px) {
+  .feedback-wall { columns: 2; }
+}
+@media (max-width: 600px) {
+  .feedback-wall { columns: 1; }
+  .feedback-wall:not(.is-open) .feedback:nth-child(n + 5) { display: none; }
+  .feedback { margin-bottom: 16px; }
+  .feedback-open { border-radius: 16px; }
+  .feedback-more .button { width: 100%; }
 }
 
 
@@ -1030,7 +1074,6 @@ details p { padding-top: 15px; max-width: 700px; color: var(--light-main); font-
   .countdown { flex-wrap: wrap; }
 
   .program-grid,
-  .testimonial-grid { grid-template-columns: 1fr; }
 
   .process-grid,
   .included-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1103,11 +1146,6 @@ details p { padding-top: 15px; max-width: 700px; color: var(--light-main); font-
   .teacher-photo { width: min(100%, 320px); }
   .teacher-bio { font-size: .95rem; }
 
-  /* Depoimentos */
-  .testimonial { padding: 28px; min-height: 0; gap: 24px; }
-  .quote { font-size: 1.25rem; }
-  .testimonial.screenshot { min-height: 150px; }
-
   /* FAQ: área de toque maior */
   .faq-layout { gap: 30px; }
   details { padding: 0; }
@@ -1140,7 +1178,6 @@ details p { padding-top: 15px; max-width: 700px; color: var(--light-main); font-
   .included-item p,
   .program-card li,
   details p { font-size: .95rem; }
-  .testimonial span { font-size: .8rem; }
 }
 
 @media (max-width: 600px) {
@@ -1150,7 +1187,6 @@ details p { padding-top: 15px; max-width: 700px; color: var(--light-main); font-
   .program-card li { font-size: 1rem; }
   .teacher-bio { font-size: 1rem; }
   details p { font-size: 1rem; line-height: 1.6; }
-  .testimonial span { font-size: .85rem; }
   .waitlist-form label { font-size: .78rem; }
   .countdown span { font-size: .6rem; }
 }
