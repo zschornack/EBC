@@ -337,6 +337,30 @@ var COUNTDOWN_DATE = '2026-12-11T00:00:00-03:00';
     if (phone.classList.contains('invalid') && phoneIsValid(out)) { markPhone(false); showStatus(''); }
   });
 
+  // Sucesso: o formulário dá lugar a um cartão verde com animação de ✓
+  var success = document.getElementById('waitlist-success');
+  function showSuccess() {
+    var student = form.elements.studentName.value.trim();
+    document.getElementById('success-student').textContent = student || 'Seu filho';
+    document.getElementById('success-phone').textContent = phone.value.trim();
+    form.reset();
+    resetTurnstile();
+    showStatus('');
+    form.hidden = true;
+    success.hidden = false;
+    success.classList.remove('is-shown');
+    void success.offsetWidth; // reinicia a animação
+    success.classList.add('is-shown');
+    var top = success.getBoundingClientRect().top;
+    if (top < 90 || top > window.innerHeight * 0.7) success.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    success.focus({ preventScroll: true });
+  }
+  document.getElementById('success-again').addEventListener('click', function () {
+    success.hidden = true;
+    form.hidden = false;
+    form.elements.name.focus();
+  });
+
   form.addEventListener('submit', async function (event) {
     event.preventDefault(); // impede o navegador de recarregar a página
 
@@ -375,9 +399,7 @@ var COUNTDOWN_DATE = '2026-12-11T00:00:00-03:00';
         return;
       }
 
-      form.reset();
-      resetTurnstile();
-      showStatus('Obrigado! Você está na lista de espera. Entraremos em contato em breve.', 'success');
+      showSuccess();
     } catch (error) {
       showStatus('Não foi possível enviar agora. Verifique sua conexão e tente novamente.', 'error');
     } finally {
@@ -388,40 +410,163 @@ var COUNTDOWN_DATE = '2026-12-11T00:00:00-03:00';
 })();
 
 
-/* ---------- Depoimentos: "ver mais" e print ampliado ---------- */
+/* ---------- Depoimentos: carrossel automático + print ampliado ----------
+   - rola sozinho, em loop (a lista é duplicada no fim para emendar sem "pulo");
+   - pausa com o mouse em cima, enquanto a pessoa arrasta/toca, fora da tela ou com o print ampliado;
+   - ‹ ›: um clique pula um bloco; segurar acelera; botão do meio pausa/continua;
+   - quem prefere menos movimento (configuração do sistema) começa com ele pausado. */
 (function () {
-  const wall = document.getElementById('feedback-wall');
-  if (!wall) return;
-  const more = document.getElementById('feedback-more');
-  const dialog = document.getElementById('feedback-dialog');
-  const big = dialog.querySelector('img');
+  var track = document.getElementById('feedback-track');
+  if (!track) return;
+  var dialog = document.getElementById('feedback-dialog');
+  var big = dialog.querySelector('img');
+  var prev = document.getElementById('feedback-prev');
+  var next = document.getElementById('feedback-next');
+  var pauseBtn = document.getElementById('feedback-pause');
 
-  // esconde o botão se não houver nada escondido (ex.: poucos prints)
-  function updateButton() {
-    const hidden = Array.from(wall.querySelectorAll('.feedback')).some((el) => el.offsetParent === null);
-    more.parentElement.hidden = !hidden && !wall.classList.contains('is-open');
+  var SPEED = window.matchMedia('(max-width: 600px)').matches ? 32 : 45; // px por segundo
+  var BOOST = 14;          // quantas vezes mais rápido ao segurar ‹ ou ›
+  var HOLD_MS = 260;       // a partir de quanto tempo segurando conta como "segurar"
+  var RESUME_MS = 2500;    // volta a andar este tempo depois que a pessoa para de mexer
+
+  // 1. duplica os prints para o loop infinito (cópias escondidas de leitores de tela e do Tab)
+  var originals = Array.prototype.slice.call(track.children);
+  originals.forEach(function (fig) {
+    var copy = fig.cloneNode(true);
+    copy.setAttribute('aria-hidden', 'true');
+    copy.querySelector('button').tabIndex = -1;
+    copy.querySelector('img').alt = '';
+    track.appendChild(copy);
+  });
+  var firstCopy = track.children[originals.length];
+  var loopWidth = 0;
+  function measure() { loopWidth = firstCopy.offsetLeft - originals[0].offsetLeft; }
+  measure();
+  window.addEventListener('resize', measure);
+  track.addEventListener('load', measure, true); // quando cada imagem termina de carregar
+
+  // 2. estado
+  var pos = track.scrollLeft;
+  var lastSet = pos;
+  var userPaused = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hovering = false, onScreen = false, interactingUntil = 0, boost = 0, tween = null, last = 0;
+
+  function setPaused(value) {
+    userPaused = value;
+    pauseBtn.setAttribute('aria-pressed', String(value));
+    pauseBtn.setAttribute('aria-label', value ? 'Continuar o carrossel' : 'Pausar o carrossel');
   }
-  updateButton();
-  window.addEventListener('resize', updateButton);
+  setPaused(userPaused);
 
-  more.addEventListener('click', () => {
-    const open = wall.classList.toggle('is-open');
-    more.setAttribute('aria-expanded', String(open));
-    more.textContent = open ? 'Ver menos' : 'Ver mais depoimentos';
-    if (!open) wall.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  function wrap(value) {
+    if (!loopWidth) return value;
+    while (value >= loopWidth) value -= loopWidth;
+    while (value < 0) value += loopWidth;
+    return value;
+  }
+
+  function frame(now) {
+    var dt = last ? Math.min((now - last) / 1000, 0.05) : 0;
+    last = now;
+
+    // se a pessoa rolou na mão (dedo, trackpad), segue de onde ela parou
+    if (Math.abs(track.scrollLeft - lastSet) > 1) { pos = track.scrollLeft; interactingUntil = now + RESUME_MS; }
+
+    var moving = onScreen && !dialog.open && !document.hidden;
+    if (tween) {
+      var t = Math.min((now - tween.start) / tween.duration, 1);
+      var eased = 1 - Math.pow(1 - t, 3);
+      pos = tween.from + (tween.to - tween.from) * eased;
+      if (t === 1) tween = null;
+    } else if (boost && moving) {
+      pos += SPEED * BOOST * boost * dt;
+    } else if (moving && !userPaused && !hovering && now > interactingUntil) {
+      pos += SPEED * dt;
+    }
+
+    var wrapped = wrap(pos);
+    if (tween && wrapped !== pos) { tween.from += wrapped - pos; tween.to += wrapped - pos; }
+    pos = wrapped;
+    if (Math.round(pos) !== Math.round(track.scrollLeft)) track.scrollLeft = Math.round(pos);
+    lastSet = track.scrollLeft;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // 3. quando pausa sozinho
+  new IntersectionObserver(function (entries) { onScreen = entries[0].isIntersecting; }).observe(track);
+  track.addEventListener('mouseenter', function () { hovering = true; });
+  track.addEventListener('mouseleave', function () { hovering = false; });
+  ['touchstart', 'wheel'].forEach(function (type) {
+    track.addEventListener(type, function () { interactingUntil = performance.now() + RESUME_MS; tween = null; }, { passive: true });
   });
 
-  wall.addEventListener('click', (event) => {
-    const button = event.target.closest('.feedback-open');
+  // 4. arrastar com o mouse (no celular o dedo já rola naturalmente)
+  var drag = null, suppressClick = false;
+  track.addEventListener('pointerdown', function (e) {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    drag = { x: e.clientX, pos: pos, moved: false };
+    tween = null;
+  });
+  window.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    var dx = e.clientX - drag.x;
+    if (Math.abs(dx) > 6 && !drag.moved) { drag.moved = true; track.classList.add('is-dragging'); }
+    if (drag.moved) { pos = wrap(drag.pos - dx); track.scrollLeft = Math.round(pos); lastSet = track.scrollLeft; interactingUntil = performance.now() + RESUME_MS; }
+  });
+  window.addEventListener('pointerup', function () {
+    if (!drag) return;
+    suppressClick = drag.moved;
+    drag = null;
+    track.classList.remove('is-dragging');
+  });
+
+  // 5. botões ‹ ›: clique = pula um bloco; segurar = acelera
+  function jump(direction) {
+    var from = tween ? tween.to : pos;
+    tween = { from: pos, to: from + direction * track.clientWidth * 0.7, start: performance.now(), duration: 650 };
+    interactingUntil = performance.now() + RESUME_MS;
+  }
+  [[prev, -1], [next, 1]].forEach(function (pair) {
+    var btn = pair[0], direction = pair[1], timer = null, held = false;
+    function stop() {
+      clearTimeout(timer);
+      if (held) { boost = 0; btn.classList.remove('is-active'); interactingUntil = performance.now() + RESUME_MS; }
+    }
+    btn.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0) return;
+      held = false;
+      timer = setTimeout(function () { held = true; tween = null; boost = direction; btn.classList.add('is-active'); }, HOLD_MS);
+    });
+    btn.addEventListener('pointerup', stop);
+    btn.addEventListener('pointerleave', stop);
+    btn.addEventListener('pointercancel', stop);
+    btn.addEventListener('contextmenu', function (e) { e.preventDefault(); }); // segurar no celular não abre menu
+    btn.addEventListener('click', function () {
+      if (held) { held = false; return; } // foi "segurar", não clique
+      jump(direction);
+    });
+  });
+  pauseBtn.addEventListener('click', function () { setPaused(!userPaused); });
+
+  // teclado: setas com o carrossel em foco
+  track.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') { e.preventDefault(); jump(1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); jump(-1); }
+  });
+
+  // 6. clique num print = abre ampliado
+  track.addEventListener('click', function (e) {
+    if (suppressClick) { suppressClick = false; e.preventDefault(); return; }
+    var button = e.target.closest('.feedback-open');
     if (!button || typeof dialog.showModal !== 'function') return;
-    const img = button.querySelector('img');
+    var img = button.querySelector('img');
+    var original = img.closest('[aria-hidden]') ? originals[Array.prototype.indexOf.call(track.children, img.closest('.feedback')) - originals.length].querySelector('img') : img;
     big.src = img.currentSrc || img.src;
-    big.alt = img.alt;
+    big.alt = original.alt;
     dialog.showModal();
     dialog.scrollTop = 0;
   });
-
-  dialog.querySelector('.feedback-close').addEventListener('click', () => dialog.close());
-  // clicar fora do print fecha
-  dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
+  dialog.querySelector('.feedback-close').addEventListener('click', function () { dialog.close(); });
+  dialog.addEventListener('click', function (e) { if (e.target === dialog) dialog.close(); });
 })();
