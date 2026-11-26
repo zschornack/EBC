@@ -826,7 +826,7 @@ html.modal-open { overflow: hidden; }
 .feedback-note { margin-top: 18px; max-width: 460px; font-size: .9rem; opacity: .75; }
 
 /* carrossel de prints: todos com a mesma altura, largura de acordo com a proporção de cada print */
-.testimonials-section { --fb-h: 460px; --fb-max: 640px; }
+.testimonials-section { --fb-h: 380px; --fb-max: 560px; }
 .testimonials-section .section-heading { margin-bottom: 50px; }
 
 .feedback-carousel { position: relative; }
@@ -873,33 +873,38 @@ html.modal-open { overflow: hidden; }
   -webkit-user-drag: none;
 }
 
-.feedback-controls { display: flex; justify-content: center; gap: 12px; }
-.feedback-btn {
-  width: 52px;
-  height: 52px;
+/* área de acelerar (lado direito) */
+.feedback-boost {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 34px; /* mesmo respiro de baixo do trilho */
+  width: clamp(80px, 11vw, 160px);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: clamp(14px, 2.5vw, 40px);
+  background: linear-gradient(90deg, rgba(245, 241, 232, 0), rgba(245, 241, 232, .85) 70%);
+  cursor: e-resize;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 2;
+}
+.feedback-boost-icon {
+  width: 54px;
+  height: 54px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(16, 60, 101, .25);
   border-radius: 999px;
-  background: #fff;
-  color: var(--medium-main);
-  cursor: pointer;
-  transition: background .2s, color .2s, transform .15s;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  user-select: none;
+  background: var(--medium-main);
+  color: var(--cream);
+  box-shadow: 0 10px 24px -10px rgba(16, 60, 101, .7);
+  transition: transform .25s ease;
 }
-.feedback-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-.feedback-btn:hover, .feedback-btn.is-active { background: var(--medium-main); color: var(--cream); }
-.feedback-btn:active { transform: scale(.94); }
-.feedback-btn:focus-visible { outline: 3px solid var(--medium-main); outline-offset: 3px; }
-.feedback-pause .icon-play { display: none; fill: currentColor; stroke: none; }
-.feedback-pause[aria-pressed="true"] .icon-play { display: block; }
-.feedback-pause[aria-pressed="true"] .icon-pause { display: none; }
-
-.feedback-hint { margin-top: 14px; text-align: center; font-size: .8rem; opacity: .6; }
-.hint-touch { display: none; }
-@media (hover: none) { .hint-mouse { display: none; } .hint-touch { display: inline; } }
+.feedback-boost-icon svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.feedback-boost.is-active .feedback-boost-icon { transform: scale(1.12); }
+.feedback-boost.is-active .feedback-boost-icon svg { animation: boost-nudge .5s ease-in-out infinite; }
+@keyframes boost-nudge { 50% { transform: translateX(4px); } }
 
 .waitlist-form[hidden], .waitlist-success[hidden] { display: none; }
 
@@ -934,13 +939,13 @@ html.modal-open { overflow: hidden; }
 }
 
 @media (max-width: 1000px) {
-  .testimonials-section { --fb-h: 400px; --fb-max: 560px; }
+  .testimonials-section { --fb-h: 340px; --fb-max: 500px; }
 }
 @media (max-width: 600px) {
-  .testimonials-section { --fb-h: 340px; --fb-max: 84vw; }
+  .testimonials-section { --fb-h: 290px; --fb-max: 80vw; }
   .feedback-track { gap: 14px; padding-bottom: 26px; }
   .feedback-open { border-radius: 16px; }
-  .feedback-hint { font-size: .78rem; padding: 0 24px; }
+  .feedback-boost-icon { width: 44px; height: 44px; }
 }
 
 

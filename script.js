@@ -411,23 +411,21 @@ var COUNTDOWN_DATE = '2026-12-11T00:00:00-03:00';
 
 
 /* ---------- Depoimentos: carrossel automático + print ampliado ----------
-   - rola sozinho, em loop (a lista é duplicada no fim para emendar sem "pulo");
-   - pausa com o mouse em cima, enquanto a pessoa arrasta/toca, fora da tela ou com o print ampliado;
-   - ‹ ›: um clique pula um bloco; segurar acelera; botão do meio pausa/continua;
-   - quem prefere menos movimento (configuração do sistema) começa com ele pausado. */
+   - rola sozinho, sempre, em loop (a lista é duplicada no fim para emendar sem "pulo");
+   - mouse em cima da área da direita (ou dedo segurando nela) = acelera; saiu = volta ao normal;
+   - arrastar/deslizar move na mão e ele continua sozinho logo depois;
+   - quem prefere menos movimento (configuração do sistema) não tem rolagem automática, só a área de acelerar. */
 (function () {
   var track = document.getElementById('feedback-track');
   if (!track) return;
   var dialog = document.getElementById('feedback-dialog');
   var big = dialog.querySelector('img');
-  var prev = document.getElementById('feedback-prev');
-  var next = document.getElementById('feedback-next');
-  var pauseBtn = document.getElementById('feedback-pause');
+  var zone = document.getElementById('feedback-boost');
 
   var SPEED = window.matchMedia('(max-width: 600px)').matches ? 32 : 45; // px por segundo
-  var BOOST = 14;          // quantas vezes mais rápido ao segurar ‹ ou ›
-  var HOLD_MS = 260;       // a partir de quanto tempo segurando conta como "segurar"
-  var RESUME_MS = 2500;    // volta a andar este tempo depois que a pessoa para de mexer
+  var FAST = 12;           // quantas vezes mais rápido na área de acelerar
+  var RESUME_MS = 2000;    // depois de arrastar/deslizar, volta a andar sozinho após este tempo
+  var autoplay = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // 1. duplica os prints para o loop infinito (cópias escondidas de leitores de tela e do Tab)
   var originals = Array.prototype.slice.call(track.children);
@@ -445,18 +443,9 @@ var COUNTDOWN_DATE = '2026-12-11T00:00:00-03:00';
   window.addEventListener('resize', measure);
   track.addEventListener('load', measure, true); // quando cada imagem termina de carregar
 
-  // 2. estado
-  var pos = track.scrollLeft;
-  var lastSet = pos;
-  var userPaused = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var hovering = false, onScreen = false, interactingUntil = 0, boost = 0, tween = null, last = 0;
-
-  function setPaused(value) {
-    userPaused = value;
-    pauseBtn.setAttribute('aria-pressed', String(value));
-    pauseBtn.setAttribute('aria-label', value ? 'Continuar o carrossel' : 'Pausar o carrossel');
-  }
-  setPaused(userPaused);
+  // 2. movimento
+  var pos = track.scrollLeft, lastSet = pos, velocity = 0, last = 0;
+  var boosting = false, onScreen = false, interactingUntil = 0;
 
   function wrap(value) {
     if (!loopWidth) return value;
@@ -472,98 +461,77 @@ var COUNTDOWN_DATE = '2026-12-11T00:00:00-03:00';
     // se a pessoa rolou na mão (dedo, trackpad), segue de onde ela parou
     if (Math.abs(track.scrollLeft - lastSet) > 1) { pos = track.scrollLeft; interactingUntil = now + RESUME_MS; }
 
-    var moving = onScreen && !dialog.open && !document.hidden;
-    if (tween) {
-      var t = Math.min((now - tween.start) / tween.duration, 1);
-      var eased = 1 - Math.pow(1 - t, 3);
-      pos = tween.from + (tween.to - tween.from) * eased;
-      if (t === 1) tween = null;
-    } else if (boost && moving) {
-      pos += SPEED * BOOST * boost * dt;
-    } else if (moving && !userPaused && !hovering && now > interactingUntil) {
-      pos += SPEED * dt;
+    var target = 0;
+    if (onScreen && !dialog.open && !document.hidden && !drag) {
+      if (boosting) target = SPEED * FAST;
+      else if (autoplay && now > interactingUntil) target = SPEED;
     }
+    // acelera e desacelera suavemente
+    velocity += (target - velocity) * Math.min(dt * 6, 1);
+    if (Math.abs(velocity) < 0.5 && target === 0) velocity = 0;
 
-    var wrapped = wrap(pos);
-    if (tween && wrapped !== pos) { tween.from += wrapped - pos; tween.to += wrapped - pos; }
-    pos = wrapped;
+    pos = wrap(pos + velocity * dt);
     if (Math.round(pos) !== Math.round(track.scrollLeft)) track.scrollLeft = Math.round(pos);
     lastSet = track.scrollLeft;
     requestAnimationFrame(frame);
   }
-  requestAnimationFrame(frame);
 
-  // 3. quando pausa sozinho
   new IntersectionObserver(function (entries) { onScreen = entries[0].isIntersecting; }).observe(track);
-  track.addEventListener('mouseenter', function () { hovering = true; });
-  track.addEventListener('mouseleave', function () { hovering = false; });
   ['touchstart', 'wheel'].forEach(function (type) {
-    track.addEventListener(type, function () { interactingUntil = performance.now() + RESUME_MS; tween = null; }, { passive: true });
+    track.addEventListener(type, function () { interactingUntil = performance.now() + RESUME_MS; }, { passive: true });
   });
+
+  // 3. área de acelerar: mouse em cima (computador) ou dedo segurando (celular)
+  function setBoost(on) { boosting = on; zone.classList.toggle('is-active', on); }
+  zone.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') setBoost(true); });
+  zone.addEventListener('pointerleave', function () { setBoost(false); });
+  zone.addEventListener('pointerdown', function (e) { if (e.pointerType !== 'mouse') { zone.setPointerCapture(e.pointerId); setBoost(true); } });
+  zone.addEventListener('pointerup', function (e) { if (e.pointerType !== 'mouse') setBoost(false); });
+  zone.addEventListener('pointercancel', function () { setBoost(false); });
+  zone.addEventListener('contextmenu', function (e) { e.preventDefault(); }); // segurar no celular não abre menu
 
   // 4. arrastar com o mouse (no celular o dedo já rola naturalmente)
   var drag = null, suppressClick = false;
   track.addEventListener('pointerdown', function (e) {
     if (e.pointerType !== 'mouse' || e.button !== 0) return;
     drag = { x: e.clientX, pos: pos, moved: false };
-    tween = null;
   });
   window.addEventListener('pointermove', function (e) {
     if (!drag) return;
     var dx = e.clientX - drag.x;
     if (Math.abs(dx) > 6 && !drag.moved) { drag.moved = true; track.classList.add('is-dragging'); }
-    if (drag.moved) { pos = wrap(drag.pos - dx); track.scrollLeft = Math.round(pos); lastSet = track.scrollLeft; interactingUntil = performance.now() + RESUME_MS; }
+    if (drag.moved) { pos = wrap(drag.pos - dx); track.scrollLeft = Math.round(pos); lastSet = track.scrollLeft; velocity = 0; }
   });
   window.addEventListener('pointerup', function () {
     if (!drag) return;
     suppressClick = drag.moved;
+    if (drag.moved) interactingUntil = performance.now() + RESUME_MS;
     drag = null;
     track.classList.remove('is-dragging');
   });
 
-  // 5. botões ‹ ›: clique = pula um bloco; segurar = acelera
-  function jump(direction) {
-    var from = tween ? tween.to : pos;
-    tween = { from: pos, to: from + direction * track.clientWidth * 0.7, start: performance.now(), duration: 650 };
-    interactingUntil = performance.now() + RESUME_MS;
-  }
-  [[prev, -1], [next, 1]].forEach(function (pair) {
-    var btn = pair[0], direction = pair[1], timer = null, held = false;
-    function stop() {
-      clearTimeout(timer);
-      if (held) { boost = 0; btn.classList.remove('is-active'); interactingUntil = performance.now() + RESUME_MS; }
-    }
-    btn.addEventListener('pointerdown', function (e) {
-      if (e.button !== 0) return;
-      held = false;
-      timer = setTimeout(function () { held = true; tween = null; boost = direction; btn.classList.add('is-active'); }, HOLD_MS);
-    });
-    btn.addEventListener('pointerup', stop);
-    btn.addEventListener('pointerleave', stop);
-    btn.addEventListener('pointercancel', stop);
-    btn.addEventListener('contextmenu', function (e) { e.preventDefault(); }); // segurar no celular não abre menu
-    btn.addEventListener('click', function () {
-      if (held) { held = false; return; } // foi "segurar", não clique
-      jump(direction);
-    });
-  });
-  pauseBtn.addEventListener('click', function () { setPaused(!userPaused); });
-
   // teclado: setas com o carrossel em foco
   track.addEventListener('keydown', function (e) {
-    if (e.key === 'ArrowRight') { e.preventDefault(); jump(1); }
-    if (e.key === 'ArrowLeft') { e.preventDefault(); jump(-1); }
+    var step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    pos = wrap(pos + step * track.clientWidth * 0.5);
+    track.scrollLeft = Math.round(pos);
+    lastSet = track.scrollLeft;
+    interactingUntil = performance.now() + RESUME_MS;
   });
 
-  // 6. clique num print = abre ampliado
+  requestAnimationFrame(frame);
+
+  // 5. clique num print = abre ampliado
   track.addEventListener('click', function (e) {
     if (suppressClick) { suppressClick = false; e.preventDefault(); return; }
     var button = e.target.closest('.feedback-open');
     if (!button || typeof dialog.showModal !== 'function') return;
-    var img = button.querySelector('img');
-    var original = img.closest('[aria-hidden]') ? originals[Array.prototype.indexOf.call(track.children, img.closest('.feedback')) - originals.length].querySelector('img') : img;
-    big.src = img.currentSrc || img.src;
-    big.alt = original.alt;
+    var fig = button.closest('.feedback');
+    var index = Array.prototype.indexOf.call(track.children, fig) % originals.length;
+    big.src = button.querySelector('img').currentSrc || button.querySelector('img').src;
+    big.alt = originals[index].querySelector('img').alt;
     dialog.showModal();
     dialog.scrollTop = 0;
   });

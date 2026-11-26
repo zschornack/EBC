@@ -396,7 +396,7 @@
 
       </div>
 
-      <!-- carrossel: rola sozinho; passar o mouse ou tocar pausa. Fica fora do .container para ocupar a largura toda.
+      <!-- carrossel: rola sozinho; passar o mouse na área da direita acelera. Fica fora do .container para ocupar a largura toda.
            --bg = cor de fundo do print, para os prints mais largos ficarem num cartão da mesma cor -->
       <div class="feedback-carousel">
         <div class="feedback-track" id="feedback-track" tabindex="0" aria-label="Depoimentos das famílias (role para o lado)">
@@ -532,19 +532,12 @@
           </figure>
         </div>
 
-        <div class="feedback-controls">
-          <button type="button" class="feedback-btn" id="feedback-prev" aria-label="Depoimentos anteriores">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
-          </button>
-          <button type="button" class="feedback-btn feedback-pause" id="feedback-pause" aria-label="Pausar o carrossel" aria-pressed="false">
-            <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg>
-            <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
-          </button>
-          <button type="button" class="feedback-btn" id="feedback-next" aria-label="Próximos depoimentos (segure para acelerar)">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
-          </button>
+        <!-- área do lado direito: com o mouse em cima (ou o dedo segurando), o carrossel acelera -->
+        <div class="feedback-boost" id="feedback-boost" aria-hidden="true">
+          <span class="feedback-boost-icon">
+            <svg viewBox="0 0 24 24"><path d="M6 6l6 6-6 6M13 6l6 6-6 6"/></svg>
+          </span>
         </div>
-        <p class="feedback-hint">Segure <strong>›</strong> para acelerar · <span class="hint-mouse">clique</span><span class="hint-touch">toque</span> num print para ampliar</p>
       </div>
 
       <!-- depoimento ampliado (abre ao clicar num print) -->
